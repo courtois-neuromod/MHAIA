@@ -3,20 +3,20 @@ import matplotlib as mpl
 from results.common import *
 
 
-def main(cfg: argparse.Namespace) -> None:
-    plt.style.use('seaborn-pastel')
-    seeds, sequence, metric = cfg.seeds, cfg.sequence, cfg.metric
+def main(args: argparse.Namespace) -> None:
+    plt.style.use('seaborn-v0_8-pastel')
+    seeds, sequence, metric = args.seeds, args.sequence, args.metric
     envs = SEQUENCES[sequence]
-    methods = METHODS if len(envs) == 4 else METHODS[:-1]
+    methods = args.methods
     n_envs, n_seeds, n_methods = len(envs), len(seeds), len(methods)
     fig, ax = plt.subplots(1, 1, sharey='all', sharex='all', figsize=(8, 5))
     n_datapoints = 1
 
     divider = 1000 if metric == 'memory' else 3600
-    data = [get_data_from_file(cfg.metric, n_datapoints, method, seeds, sequence) for method in methods]
+    data = [load_data_from_file(args.metric, n_datapoints, method, seeds, sequence) for method in methods]
     means = [np.nanmean(d) / divider for d in data]
     stds = [np.nanstd(d) / divider for d in data]
-    confidence_intervals = CRITICAL_VALUES[cfg.confidence] * np.array(stds) / np.sqrt(
+    confidence_intervals = CRITICAL_VALUES[args.confidence] * np.array(stds) / np.sqrt(
         n_seeds) if metric == 'walltime' else None
 
     colors = mpl.colormaps['tab20c'].colors[:4] + mpl.colormaps['tab20c'].colors[8:12] + mpl.colormaps['tab20c'].colors[4:8]
@@ -26,7 +26,7 @@ def main(cfg: argparse.Namespace) -> None:
     ax.set_ylabel(TRANSLATIONS[metric], fontsize=13)
 
     plt.tight_layout()
-    file_path = 'plots/system'
+    file_path = '../plots'
     os.makedirs(file_path, exist_ok=True)
     plt.savefig(f'{file_path}/{metric}_{sequence}.png')
     plt.show()
@@ -34,5 +34,5 @@ def main(cfg: argparse.Namespace) -> None:
 
 if __name__ == "__main__":
     parser = common_plot_args()
-    parser.add_argument("--legend_anchor", type=float, default=0, help="How much to lower the legend")
+    parser.set_defaults(metric="walltime")
     main(parser.parse_args())

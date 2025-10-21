@@ -18,13 +18,14 @@ results_processing_requirements = [
     "wandb",
     "matplotlib",
     "seaborn",
-    'pandas',
+    "pandas",
+    "jinja2",
 ]
 
 setup(
     name="COOM",
     description="COOM: Benchmarking Continual Reinforcement Learning on Doom",
-    version='1.0.0',
+    version='1.0.1',
     url='https://github.com/TTomilin/COOM',
     author='Tristan Tomilin',
     author_email='tristan.tomilin@hotmail.com',

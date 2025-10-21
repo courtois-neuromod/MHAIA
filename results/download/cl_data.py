@@ -6,40 +6,40 @@ from results.common import *
 
 def main(args: argparse.Namespace) -> None:
     api = wandb.Api()
-    # Project is specified by <entity/project-name>
     runs = api.runs(args.project)
+    base_dir = Path(__file__).parent.parent.resolve()
     for run in runs:
         if suitable_run(run, args):
-            store_data(run, args)
+            store_data(base_dir, run, args)
 
 
-def store_data(run: Run, args: argparse.Namespace) -> None:
+def store_data(base_dir: Path, run: Run, args: argparse.Namespace) -> None:
     sequence, metric, data_type, tags = args.sequence, args.metric, args.type, args.wandb_tags
-    config = json.loads(run.json_config)
+    config = run.config
     seq_len = 1 if data_type == 'train' else 4 if sequence in ['CD4', 'CO4'] else 8
     for env_idx in range(seq_len):
         task = SEQUENCES[sequence][env_idx]
         if metric == 'env':
             metric = METRICS[task]
         env = f'run_and_gun-{task}' if sequence in ['CD4', 'CD8', 'CD16'] else f'{task}-{ENVS[sequence]}'
-        log_key = f'test/stochastic/{env_idx}/{env}/{metric}' if data_type == 'test' else f'train/{metric}'
+        log_key = f'test/{args.eval_mode}/{env_idx}/{env}/{metric}' if data_type == 'test' else f'train/{metric}'
         history = list(iter(run.scan_history(keys=[log_key])))
 
         values = [item[log_key] for item in history]
         method = get_cl_method(run)
-        seed = max(run.config["seed"], 1)
-        wandb_tags = config['wandb_tags']['value']
-        tag = f'{next((tag for tag in tags if tag in wandb_tags), None).lower()}/' if tags and any(tag in tags for tag in SEPARATE_STORAGE_TAGS) else ''
-        path = f'{tag}{sequence}/{method}/seed_{seed}'
+        seed = config['seed']
+        wandb_tags = config['wandb_tags']
+        tag = f'{next((tag for tag in tags if tag in wandb_tags), None).lower()}' if tags and any(tag in tags for tag in SEPARATE_STORAGE_TAGS) else ''
+        path = base_dir / args.data_folder / tag / sequence / method / f'seed_{seed}'
         if not os.path.exists(path):
             os.makedirs(path)
             print(f"Created new directory {path}")
 
         file_name = f'{task}_{metric}.json' if data_type == 'test' else f'train_{metric}.json'
-        file_path = f'{path}/{file_name}'
+        file_path = path / file_name
         if args.overwrite or not os.path.exists(file_path):
-            print(f'Saving {run.id} --- {path}/{file_name}')
-            with open(f'{path}/{file_name}', 'w') as f:
+            print(f'Saving {run.id} --- {file_path}')
+            with open(file_path, 'w') as f:
                 json.dump(values, f)
 
 

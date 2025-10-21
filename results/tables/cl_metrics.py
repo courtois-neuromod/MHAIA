@@ -1,7 +1,7 @@
 import pandas as pd
 
 from results.common import *
-from results.common import calculate_performance, get_cl_data, calculate_forgetting
+from results.common import calculate_performance, load_cl_data, calculate_forgetting
 
 
 def print_results(metric_data: np.ndarray, ci: np.ndarray, methods: List[str], metric: str):
@@ -16,20 +16,20 @@ def normalize(metric_data, ci):
     return joined_results
 
 
-def main(cfg: argparse.Namespace) -> None:
+def main(args: argparse.Namespace) -> None:
     methods, seeds, sequences, metric, task_length, confidence = \
-        cfg.methods, cfg.seeds, cfg.sequences, cfg.metric, cfg.task_length, cfg.confidence
+        args.methods, args.seeds, args.sequences, args.metric, args.task_length, args.confidence
 
     # Create 3-dimensional arrays to store performance, forgetting, transfer + their confidence intervals
-    data = np.empty((len(sequences), len(METHODS), 3))
-    data_cis = np.empty((len(sequences), len(METHODS), 3))
+    data = np.empty((len(sequences), len(methods), 3))
+    data_cis = np.empty((len(sequences), len(methods), 3))
     data[:] = np.nan
     data_cis[:] = np.nan
 
     for i, sequence in enumerate(sequences):
-        cl_data, ci_data, transfer_data = get_cl_data(methods, metric, seeds, sequence, task_length, confidence,
-                                                      second_half=cfg.second_half)
-        baseline_data = get_baseline_data(sequence, seeds, cfg.task_length, cfg.metric)
+        cl_data, ci_data, transfer_data = load_cl_data(methods, metric, seeds, sequence, args.data_folder, task_length,
+                                                       confidence, second_half=args.second_half)
+        baseline_data = load_rl_baseline_data(sequence, seeds, args.task_length, args.data_folder, args.metric)
         performance = calculate_performance(cl_data)
         performance_ci = calculate_performance(ci_data)
         forgetting, forgetting_individual = calculate_forgetting(cl_data)
@@ -40,7 +40,7 @@ def main(cfg: argparse.Namespace) -> None:
             data[i, j] = [performance[j], forgetting[j], transfer[j]]
             data_cis[i, j] = [performance_ci[j], forgetting_ci[j], transfer_ci[j]]
 
-    if cfg.task_forgetting:
+    if args.task_forgetting:
         print_task_forgetting(methods, sequence, forgetting_individual, forgetting_individual_ci)
     else:
         print_combined(methods, sequences, data, data_cis)
@@ -78,7 +78,6 @@ def print_combined(methods: List[str], sequences, data, data_cis):
         columns=['Method'] + [f'\multicolumn{{{data_types}}}{{c}}{{{sequence}}}' for sequence in sequences] + [
             '\multicolumn{3}{c}{Average}'])
     highlight_func = [np.nanmax if k in [0, 2] else np.nanmin for k in range(3)]
-    methods = METHODS if methods is None else methods
     for i, method in enumerate(methods):
         row = [TRANSLATIONS[method]]
         for j, sequence in enumerate(sequences):
@@ -109,9 +108,9 @@ def print_combined(methods: List[str], sequences, data, data_cis):
     print(latex_table)
 
 
-def print_latex(sequences, mean, ci, highlight_max=True):
+def print_latex(sequences, methods, mean, ci):
     results = pd.DataFrame(columns=['algorithm'] + sequences + ['Average'])
-    for i, method in enumerate(METHODS):
+    for i, method in enumerate(methods):
         row = [TRANSLATIONS[method]] + [f'{mean[j][i]:.2f} \tiny ± {ci[j][i]:.2f}' if not np.isnan(mean[j][i]) else '-'
                                         for j in range(len(sequences))]
         avg = np.nanmean([mean[j][i] for j in range(len(sequences))])
@@ -129,18 +128,18 @@ def print_latex(sequences, mean, ci, highlight_max=True):
     print(results.to_latex(escape=False))
 
 
-def print_latex_swapped(sequences, mean, ci, highlight_max=True):
-    methods = [TRANSLATIONS[method] for method in METHODS]
+def print_latex_swapped(sequences, methods, mean, ci, highlight_max=True):
+    methods = [TRANSLATIONS[method] for method in methods]
     results = pd.DataFrame(columns=['sequence'] + methods)
     for i, seq in enumerate(sequences):
         row = [seq] + [f'{mean[i][j]:.2f} \tiny ± {ci[i][j]:.2f}' if not np.isnan(mean[i][j]) else '-'
-                       for j in range(len(METHODS))]
+                       for j in range(len(methods))]
         index = np.nanargmax(mean[i]) if highlight_max else np.nanargmin(mean[i])
         row[index + 1] = f'\textbf{{{row[index + 1]}}}'
         results.loc[len(results)] = row
 
     average_row = ['Average'] + [f'{np.nanmean(mean[:, j]):.2f} \tiny ± {np.nanmean(ci[:, j]):.2f}'
-                                 for j in range(len(METHODS))]
+                                 for j in range(len(methods))]
     results.loc[len(results)] = average_row
 
     results = results.set_index('sequence')
