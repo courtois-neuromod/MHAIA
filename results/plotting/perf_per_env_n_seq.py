@@ -1,13 +1,13 @@
 from results.common import *
 
 
-def main(cfg: argparse.Namespace) -> None:
-    plt.style.use('seaborn-deep')
+def main(args: argparse.Namespace) -> None:
+    plt.style.use('seaborn-v0_8-deep')
     plt.rcParams['axes.grid'] = True
-    seeds, metric, sequences, methods = cfg.seeds, cfg.metric, cfg.sequences, cfg.methods
+    seeds, metric, sequences, methods = args.seeds, args.metric, args.sequences, args.methods
     n_envs = len(SEQUENCES[sequences[0]])
     fig, ax = plt.subplots(n_envs, 1, sharey='all', sharex='all', figsize=(11, 16))
-    n_data_points = cfg.task_length * n_envs
+    n_data_points = args.task_length * n_envs
     iterations = n_data_points * LOG_INTERVAL
 
     for i, sequence in enumerate(sequences):
@@ -15,8 +15,8 @@ def main(cfg: argparse.Namespace) -> None:
         colors = COLORS[sequence]
         for j, env in enumerate(envs):
             for k, method in enumerate(methods):
-                data = get_data(env, n_data_points, method, metric, seeds, sequence)
-                plot_curve(ax[j], cfg.confidence, colors[k], f'{TRANSLATIONS[method]} ({sequence})', iterations, data,
+                data = load_data(env, n_data_points, method, metric, seeds, sequence, args.data_folder)
+                plot_curve(ax[j], args.confidence, colors[k], f'{TRANSLATIONS[method]} ({sequence})', iterations, data,
                            len(seeds), linestyle=LINE_STYLES[i], interval=LOG_INTERVAL, sigma=4)
 
             ax[j].set_ylabel(TRANSLATIONS[metric])
@@ -24,9 +24,11 @@ def main(cfg: argparse.Namespace) -> None:
             ax[j].set_xlim([0, iterations])
             ax[j].set_ylim([0, 1])
 
-    # fig.subplots_adjust(hspace=0.5)
-    plot_name = f'forgetting/{"vs".join(cfg.sequences)}'
-    plot_and_save(ax=ax[-1], plot_name=plot_name, n_col=8, vertical_anchor=-0.5)
+    plot_name = "vs".join(sequences)
+    n_col = len(methods) * len(sequences)
+    if n_col > 8:
+        n_col //= 2
+    save_and_show(ax=ax[-1], plot_name=plot_name, n_col=n_col, vertical_anchor=-0.5)
 
 
 if __name__ == "__main__":

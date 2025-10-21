@@ -5,16 +5,16 @@ from results.common import *
 
 
 def has_single_tag(run: Run) -> bool:
-    config = json.loads(run.json_config)
+    """To collect baseline data, we run the jobs with the 'SINGLE' wandb tag."""
+    config = run.config
     if 'wandb_tags' in config:
-        tags = config['wandb_tags']['value']
+        tags = config['wandb_tags']
         return 'SINGLE' in tags
     return False
 
 
 def main(args: argparse.Namespace) -> None:
     api = wandb.Api()
-    # Project is specified by <entity/project-name>
     runs = api.runs(args.project)
     for run in runs:
         if has_single_tag(run):
@@ -26,8 +26,8 @@ def store_data(run: Run, args: argparse.Namespace) -> None:
     envs = SEQUENCES[sequence]
 
     # Load the environment name from the run configuration
-    config = json.loads(run.json_config)
-    env = config['envs']['value'][0]
+    config = run.config
+    env = config['envs'][0]
 
     if sequence in ['CD4', 'CD8']:
         scenario = 'run_and_gun'
@@ -41,18 +41,17 @@ def store_data(run: Run, args: argparse.Namespace) -> None:
             return
 
     metric = METRICS[scenario] if metric is None else metric
-    seed = max(run.config["seed"], 1)
-    path = f'data/single/sac/seed_{seed}'
-    file_path = f'{path}/{task}_{metric}.json'
+    seed = config['seed']
+    results_dir = Path(__file__).parent.parent.resolve()
+    path = results_dir / args.data_folder / 'single' / 'sac' / f'seed_{seed}'
+    os.makedirs(path, exist_ok=True)
+    file_path = path / f'{task}_{metric}.json'
     if not args.overwrite and os.path.exists(file_path):
         print(f"File {file_path} already exists, skipping")
         return
     log_key = f'train/{metric}'
     history = list(iter(run.scan_history(keys=[log_key])))
     values = [item[log_key] for item in history][:args.task_length]
-    if not os.path.exists(path):
-        os.makedirs(path)
-        print(f"Created new directory {path}")
     print(f'Saving {file_path}')
     with open(file_path, 'w') as f:
         json.dump(values, f)

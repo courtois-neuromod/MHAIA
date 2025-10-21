@@ -1,12 +1,15 @@
 import argparse
 import json
 import os
+from pathlib import Path
 from typing import List, Tuple
 
 import numpy as np
 from matplotlib import pyplot as plt
 from numpy import ndarray
 from scipy.ndimage import gaussian_filter1d
+
+#################################### CONSTANTS ####################################
 
 NUM_FINAL_VALS = 10
 
@@ -143,7 +146,6 @@ SEPARATE_STORAGE_TAGS = ['REG_CRITIC', 'NO_REG_CRITIC', 'SINGLE_HEAD', 'PER', 'L
                          'REPEAT_10', 'NO_TASK_ID']
 FORBIDDEN_TAGS = ['SINGLE_HEAD', 'REG_CRITIC', 'NO_REG_CRITIC', 'SPARSE', 'TEST']
 LINE_STYLES = ['-', '--', ':', '-.']
-METHODS = ['packnet', 'mas', 'agem', 'l2', 'ewc', 'fine_tuning', 'vcl', 'clonex', 'perfect_memory']
 KERNEL_SIGMA = 2
 INTERVAL_INTENSITY = 0.25
 LOG_INTERVAL = 1000
@@ -154,15 +156,17 @@ CRITICAL_VALUES = {
 }
 
 
+#################################### CLI ####################################
+
 def common_args() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--sequence", type=str, default='CO8',
                         choices=['CD4', 'CO4', 'CD8', 'CO8', 'CD16', 'CO16', 'COC'], help="Name of the task sequence")
-    parser.add_argument("--alt_sequence", type=str, required=False, help="Name of the alternative sequence for data")
     parser.add_argument("--seeds", type=int, nargs='+', default=[1, 2, 3, 4, 5], help="Seed(s) of the run(s) to plot")
     parser.add_argument("--metric", type=str, default='success', help="Name of the metric to store/plot")
     parser.add_argument("--task_length", type=int, default=200, help="Number of iterations x 1000 per task")
     parser.add_argument("--test_envs", type=int, nargs='+', help="Test environment ID of the actions to download/plot")
+    parser.add_argument("--data_folder", type=str, default='data', help="Folder to store and load the data")
     return parser
 
 
@@ -170,12 +174,28 @@ def common_plot_args() -> argparse.ArgumentParser:
     parser = common_args()
     parser.add_argument("--method", type=str, default='packnet', help="CL method name")
     parser.add_argument("--confidence", type=float, default=0.95, choices=[0.9, 0.95, 0.99], help="Confidence interval")
+    parser.add_argument("--h_pad", type=float, default=1.0,
+                        help="How much to vertically pad the subplots to make space for the subtitles")
+    parser.add_argument("--bottom_adjust", type=float, default=0.0,
+                        help="Bottom adjustment to make space for the legend")
+    parser.add_argument("--vertical_anchor", type=float, default=0.0,
+                        help="Vertical anchor for the legend")
     parser.add_argument("--sequences", type=str, default=['CO8', 'COC'],
                         choices=['CD4', 'CO4', 'CD8', 'CO8', 'CD16', 'CO16', 'COC'], nargs='+',
                         help="Name of the task sequences")
     parser.add_argument("--methods", type=str, nargs="+",
+                        default=['packnet', 'vcl', 'mas', 'ewc', 'agem', 'l2', 'fine_tuning', 'clonex',
+                                 'perfect_memory'],
                         choices=['packnet', 'vcl', 'mas', 'ewc', 'agem', 'l2', 'fine_tuning', 'clonex',
                                  'perfect_memory'])
+    return parser
+
+
+def common_action_plot_args() -> argparse.ArgumentParser:
+    parser = common_plot_args()
+    parser.add_argument("--episode_length", type=int, default=1000, help="Length of each episode in timesteps")
+    parser.add_argument("--n_actions", type=int, default=12,
+                        help="Number of discrete actions that the models were trained with")
     return parser
 
 
@@ -184,12 +204,16 @@ def common_dl_args() -> argparse.ArgumentParser:
     parser.add_argument("--project", type=str, required=True, help="Name of the WandB project")
     parser.add_argument("--method", type=str, help="Optional filter by CL method")
     parser.add_argument("--type", type=str, default='test', choices=['train', 'test'], help="Type of data to download")
+    parser.add_argument("--eval_mode", type=str, default='deterministic', choices=['deterministic', 'stochastic'],
+                        help="Evaluation mode during inference")
     parser.add_argument("--wandb_tags", type=str, nargs='+', default=[], help="WandB tags to filter runs")
     parser.add_argument("--overwrite", default=False, action='store_true', help="Overwrite existing files")
     parser.add_argument("--include_runs", type=str, nargs="+", default=[],
                         help="List of runs that shouldn't be filtered out")
     return parser
 
+
+#################################### PLOTTING UTILS ####################################
 
 def add_task_labels(ax, envs: List[str], iterations: int, n_envs: int, fontsize: int = 9):
     env_steps = iterations // n_envs
@@ -235,6 +259,8 @@ def add_main_ax(fig, fontsize: int = 11, fontweight='normal', labelpad: int = 25
     return main_ax
 
 
+#################################### DOWNLOAD UTILS ####################################
+
 def get_cl_method(run):
     method = run.config["cl_method"]
     if not method:
@@ -253,10 +279,10 @@ def suitable_run(run, args: argparse.Namespace) -> bool:
     if args.method and args.method != get_cl_method(run):
         return False
     # Load the configuration of the run
-    config = json.loads(run.json_config)
+    config = run.config
     # Check whether the wandb tags are suitable
     if 'wandb_tags' in config:
-        tags = config['wandb_tags']['value']
+        tags = config['wandb_tags']
         # Check whether the run includes one of the provided tags
         if args.wandb_tags and not any(tag in tags for tag in args.wandb_tags):
             return False
@@ -267,7 +293,7 @@ def suitable_run(run, args: argparse.Namespace) -> bool:
     if args.seeds:
         if 'seed' not in config:
             return False
-        seed = config['seed']['value']
+        seed = config['seed']
         if seed not in args.seeds:
             return False
     if args.method:
@@ -280,30 +306,21 @@ def suitable_run(run, args: argparse.Namespace) -> bool:
     return True
 
 
-def plot_and_save(ax, plot_name: str, n_col: int, vertical_anchor: float = 0.0, fontsize: int = 11,
-                  bottom_adjust: float = 0, loc: str = 'lower center', horizontal_anchor: float = 0.5,
-                  h_pad: float = -1.0, add_xlabel: bool = True, add_legend: bool = True) -> None:
-    if add_xlabel:
-        ax.set_xlabel("Timesteps", fontsize=fontsize)
-    if add_legend:
-        ax.legend(loc=loc, bbox_to_anchor=(horizontal_anchor, vertical_anchor), ncol=n_col, fancybox=True, shadow=True)
-    plt.tight_layout(rect=[0, bottom_adjust, 1, 1], h_pad=h_pad)
-    plt.savefig(f'plots/{plot_name}.png')
-    plt.savefig(f'plots/{plot_name}.pdf', dpi=300)
-    plt.show()
+#################################### DATA LOADING ####################################
 
-
-def get_baseline_data(sequence: str, seeds: List[str], task_length: int,
-                      set_metric: str = None) -> np.ndarray:
+def load_rl_baseline_data(sequence: str, seeds: List[str], task_length: int, data_folder: str,
+                          set_metric: str = None) -> np.ndarray:
     envs = SEQUENCES[sequence]
     seed_data = np.empty((len(seeds), task_length * len(envs)))
     seed_data[:] = np.nan
     baseline_type = 'single_hard' if sequence == 'COC' else 'single'
+    results_dir = Path(__file__).parent.resolve()
     for i, env in enumerate(envs):
         metric = set_metric if set_metric else METRICS[env]
         for k, seed in enumerate(seeds):
-            path = f'{os.getcwd()}/data/{baseline_type}/sac/seed_{seed}/{env}_{metric}.json'
+            path = results_dir / data_folder / baseline_type / "sac" / f"seed_{seed}" / f"{env}_{metric}.json"
             if not os.path.exists(path):
+                print(f'Path {path} does not exist')
                 continue
             with open(path, 'r') as f:
                 data = json.load(f)[0: task_length]
@@ -314,13 +331,15 @@ def get_baseline_data(sequence: str, seeds: List[str], task_length: int,
     return baseline_data
 
 
-def get_action_data(folder: str, iterations: int, method: str, n_actions: int, seeds: List[int], sequence: str,
-                    scale=True, ep_time_steps=1000, sigma=5):
+def load_action_data(tag: str, iterations: int, method: str, n_actions: int, seeds: List[int], sequence: str,
+                     data_folder: str, scale=True, ep_time_steps=1000, sigma=5):
     data = np.empty((len(seeds), iterations, n_actions))
     data[:] = np.nan
+    results_dir = Path(__file__).parent.resolve()
     for k, seed in enumerate(seeds):
-        path = os.path.join(os.getcwd(), 'data', 'actions', sequence, method, folder, f'seed_{seed}.json')
+        path = results_dir / data_folder / 'actions' / sequence / method / tag / f'seed_{seed}.json'
         if not os.path.exists(path):
+            print(f'Path {path} does not exist')
             continue
         with open(path, 'r') as f:
             seed_data = json.load(f)
@@ -332,81 +351,68 @@ def get_action_data(folder: str, iterations: int, method: str, n_actions: int, s
     return mean
 
 
-def get_data(env: str, iterations: int, method: str, metric: str, seeds: List[int], sequence: str):
-    return get_data_from_file(f'{env}_{metric}', iterations, method, seeds, sequence)
+def load_data(env: str, iterations: int, method: str, metric: str, seeds: List[int], sequence: str, data_folder: str,
+              from_idx: int = 0):
+    file_name = f'{env}_{metric}'
+    return load_data_from_file(file_name, iterations, method, seeds, sequence, data_folder, from_idx)
 
 
-def get_data_from_file(file_name: str, iterations: int, method: str, seeds: List[int], sequence: str):
+def load_data_from_file(file_name: str, iterations: int, method: str, seeds: List[int], sequence: str,
+                        data_folder: str, from_idx: int = 0) -> np.ndarray:
     data = np.empty((len(seeds), iterations))
     data[:] = np.nan
+    results_dir = Path(__file__).parent.resolve()
     for k, seed in enumerate(seeds):
-        path = os.path.join(os.getcwd(), 'data', sequence, method, f'seed_{seed}', f'{file_name}.json')
+        path = results_dir / data_folder / sequence / method / f'seed_{seed}' / f'{file_name}.json'
         if not os.path.exists(path):
             print(f'Path {path} does not exist')
             continue
         with open(path, 'r') as f:
             seed_data = json.load(f)
+            seed_data = seed_data[from_idx: from_idx + iterations]
             data[k, np.arange(len(seed_data))] = seed_data
     return data
 
 
-def get_data_per_env(envs: List[str], iterations: int, method: str, metric: str, seeds: List[int], sequence: str,
-                     folder: str = None) -> np.ndarray:
+def load_data_per_env(envs: List[str], iterations: int, method: str, metric: str, seeds: List[int], sequence: str,
+                      data_folder: str, tag: str = '', from_idx: int = 0) -> np.ndarray:
     seed_data = np.empty((len(envs), len(seeds), iterations))
     seed_data[:] = np.nan
-    folder = f'/{folder}' if folder else ''
+    results_dir = Path(__file__).parent.resolve()
     for e, env in enumerate(envs):
         for k, seed in enumerate(seeds):
-            path = f'{os.getcwd()}/data{folder}/{sequence}/{method}/seed_{seed}/{env}_{metric}.json'
+            path = results_dir / data_folder / tag / sequence / method / f'seed_{seed}' / f'{env}_{metric}.json'
             if not os.path.exists(path):
                 print(f'Path {path} does not exist')
                 continue
             with open(path, 'r') as f:
-                data = json.load(f)
+                data = json.load(f)[from_idx: from_idx + iterations]
                 seed_data[e, k, np.arange(len(data))] = data
     return seed_data
 
 
-def calculate_performance(data: np.ndarray):
-    data = data.mean(axis=3)
-    data = np.triu(data)
-    data[data == 0] = np.nan
-    return np.nanmean(data, axis=(-1, -2))
-
-
-def calculate_transfer(transfer_data, baseline_data, n_seeds: int, confidence: float) -> Tuple[ndarray, ndarray]:
-    auc_cl = np.nanmean(transfer_data, axis=-1)
-    auc_baseline = np.nanmean(baseline_data, axis=-1)
-    ft = (auc_cl - auc_baseline) / (1 - auc_baseline)
-    ft_mean = np.nanmean(ft, 0)
-    ft_std = np.nanstd(ft, 0)
-    ci = CRITICAL_VALUES[confidence] * ft_std / np.sqrt(n_seeds)
-    return ft_mean, ci
-
-
-def get_cl_data(methods: List[str], metric: str, seeds: List[int], sequence: str, task_length: int, confidence: float,
-                second_half: bool = False, folder: str = '') -> Tuple[ndarray, ndarray, ndarray]:
+def load_cl_data(methods: List[str], metric: str, seeds: List[int], sequence: str, data_folder: str, task_length: int,
+                 confidence: float, second_half: bool = False, tag: str = '') -> Tuple[ndarray, ndarray, ndarray]:
     envs = SEQUENCES[sequence]
     if second_half:
         envs = envs[len(envs) // 2:]
     n_envs = len(envs)
     iterations = n_envs * task_length
-    if methods is None:
-        methods = METHODS if n_envs == 4 or second_half else METHODS[:-1]  # Omit Perfect Memory for 8 env sequences
     cl_data = np.empty((len(methods), n_envs, n_envs, task_length))
     ci_data = np.empty((len(methods), n_envs, n_envs, task_length))
     transfer_data = np.empty((len(seeds), len(methods), task_length * n_envs))
     cl_data[:] = np.nan
     ci_data[:] = np.nan
     transfer_data[:] = np.nan
+    results_dir = Path(__file__).parent.resolve()
     for i, method in enumerate(methods):
         for j, env in enumerate(envs):
             seed_data = np.empty((len(seeds), n_envs, task_length))
             seed_data[:] = np.nan
             for k, seed in enumerate(seeds):
-                path = os.path.join(os.getcwd(), 'data', folder, sequence, method, f'seed_{seed}',
-                                    f'{env}_{metric}.json')
+                path = results_dir / data_folder / tag / sequence / method / f'seed_{seed}' / f'{env}_{metric}.json'
                 if not os.path.exists(path):
+                    print(f'Path {path} does not exist')
                     continue
                 with open(path, 'r') as f:
                     data = json.load(f)
@@ -428,6 +434,25 @@ def get_cl_data(methods: List[str], metric: str, seeds: List[int], sequence: str
     return cl_data, ci_data, transfer_data
 
 
+#################################### METRICS CALCULATION ####################################
+
+def calculate_performance(data: np.ndarray):
+    data = data.mean(axis=3)
+    data = np.triu(data)
+    data[data == 0] = np.nan
+    return np.nanmean(data, axis=(-1, -2))
+
+
+def calculate_transfer(transfer_data, baseline_data, n_seeds: int, confidence: float) -> Tuple[ndarray, ndarray]:
+    auc_cl = np.nanmean(transfer_data, axis=-1)
+    auc_baseline = np.nanmean(baseline_data, axis=-1)
+    ft = (auc_cl - auc_baseline) / (1 - auc_baseline)
+    ft_mean = np.nanmean(ft, 0)
+    ft_std = np.nanstd(ft, 0)
+    ci = CRITICAL_VALUES[confidence] * ft_std / np.sqrt(n_seeds)
+    return ft_mean, ci
+
+
 def calculate_forgetting(data: np.ndarray):
     end_data = calculate_data_at_the_end(data)
     forgetting = (np.diagonal(end_data, axis1=1, axis2=2) - end_data[:, :, -1])
@@ -436,3 +461,39 @@ def calculate_forgetting(data: np.ndarray):
 
 def calculate_data_at_the_end(data):
     return data[:, :, :, -NUM_FINAL_VALS:].mean(axis=3)
+
+
+#################################### STORAGE UTILS ####################################
+
+def save_with_extension(plot_name: str, file_extension: str = 'png') -> None:
+    file_name = f'{plot_name}.{file_extension}'
+    plt.savefig(file_name, dpi=300)
+    print(f'Saved figure to {file_name}')
+
+
+def save_and_show(ax, plot_name: str, n_col: int = 1, vertical_anchor: float = 0.0, fontsize: int = 11,
+                  bottom_adjust: float = 0, legend_loc: str = 'lower center', horizontal_anchor: float = 0.5,
+                  h_pad: float = -1.0, add_xlabel: bool = True, add_legend: bool = True, fig=None) -> None:
+    if add_xlabel:
+        ax.set_xlabel("Timesteps", fontsize=fontsize)
+    if add_legend:
+        handles, labels = ax.get_legend_handles_labels()
+        legend_obj = fig if fig else ax
+        legend_obj.legend(handles, labels, loc=legend_loc, bbox_to_anchor=(horizontal_anchor, vertical_anchor),
+                          ncol=n_col,
+                          fancybox=True, shadow=True)
+    plt.tight_layout(rect=[0, bottom_adjust, 1, 1], h_pad=h_pad)
+
+    save_dir = Path(__file__).parent.resolve() / 'plots'
+    save_dir.mkdir(exist_ok=True)
+    file_name = f'{save_dir}/{plot_name}'
+    save_with_extension(file_name, 'png')
+    save_with_extension(file_name, 'pdf')
+    plt.savefig(f'{save_dir}/{plot_name}.png')
+    plt.show()
+
+
+#################################### OTHER UTILS ####################################
+
+def is_short_sequence(sequence: str = '', envs: List[str] = None) -> bool:
+    return sequence in ['CD4', 'CO4'] or envs and (len(envs) == 4)

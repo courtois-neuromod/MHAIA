@@ -6,7 +6,6 @@ from results.common import *
 
 def main(args: argparse.Namespace) -> None:
     api = wandb.Api()
-    # Project is specified by <entity/project-name>
     runs = api.runs(args.project)
     for run in runs:
         if suitable_run(run, args):
@@ -15,19 +14,20 @@ def main(args: argparse.Namespace) -> None:
 
 def store_data(run: Run, args: argparse.Namespace) -> None:
     sequence, metric, tags = args.sequence, args.metric, args.wandb_tags
-    config = json.loads(run.json_config)
-    system_metric = list(iter(run.scan_history(keys=[metric])))[-1][metric] if metric == 'walltime' else run.system_metrics[metric]
-    if not system_metric:
-        print(f'No system metric named "{metric}" found for {run.name}')
-        return
+    config = run.config
+    if metric == 'walltime':
+        system_metric = run.summary['_runtime']
+    elif metric == 'memory':
+        system_metric = list(iter(run.scan_history(keys=[metric])))[-1][metric]
+    else:
+        raise ValueError(f'Unsupported system metric: {metric}')
     method = get_cl_method(run)
-    seed = max(run.config["seed"], 1)
-    wandb_tags = config['wandb_tags']['value']
-    tag = f"{wandb_tags[0].lower()}/" if tags and any(tag in tags for tag in SEPARATE_STORAGE_TAGS) else ''
-    path = f'{tag}{sequence}/{method}/seed_{seed}'
-    if not os.path.exists(path):
-        os.makedirs(path)
-        print(f"Created new directory {path}")
+    seed = config["seed"]
+    wandb_tags = config['wandb_tags']
+    results_dir = Path(__file__).parent.parent.resolve()
+    tag = f"{wandb_tags[0].lower()}" if tags and any(tag in tags for tag in SEPARATE_STORAGE_TAGS) else ''
+    path = results_dir / args.data_folder / tag / sequence / method / f'seed_{seed}'
+    os.makedirs(path, exist_ok=True)
 
     file_name = metric if metric == 'walltime' else TRANSLATIONS[metric]
     file_path = f'{path}/{file_name}.json'
@@ -39,4 +39,5 @@ def store_data(run: Run, args: argparse.Namespace) -> None:
 
 if __name__ == "__main__":
     parser = common_dl_args()
+    parser.set_defaults(metric="walltime")
     main(parser.parse_args())
