@@ -6,15 +6,15 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
-from keras.optimizers import Adam
 from keras.optimizers.schedules.learning_rate_schedule import ExponentialDecay, PolynomialDecay, LearningRateSchedule
+from tensorflow.keras.optimizers import Adam
 from tensorflow.python.framework import dtypes
 from tensorflow_probability.python.distributions import Categorical
 
-from CL.rl import models
-from CL.rl.exploration import ExplorationHelper
 from CL.replay.buffers import ReplayBuffer, ReservoirReplayBuffer, PrioritizedReplayBuffer, BufferType, \
     PrioritizedExperienceReplay
+from CL.rl import models
+from CL.rl.exploration import ExplorationHelper
 from CL.utils.logging import EpochLogger
 from CL.utils.running import reset_optimizer, reset_weights, set_seed, create_one_hot_vec
 from COOM.env.base import BaseEnv
@@ -381,8 +381,8 @@ class SAC:
             abs_error = tf.stop_gradient(tf.math.minimum(tf.abs(q_backup - q1_vals), tf.abs(q_backup - q2_vals)))
 
             # Critic loss
-            q1_loss = 0.5 * tf.reduce_mean((q_backup - q1_vals)**2)
-            q2_loss = 0.5 * tf.reduce_mean((q_backup - q2_vals)**2)
+            q1_loss = 0.5 * tf.reduce_mean((q_backup - q1_vals) ** 2)
+            q2_loss = 0.5 * tf.reduce_mean((q_backup - q2_vals) ** 2)
             value_loss = q1_loss + q2_loss
 
             # Actor loss

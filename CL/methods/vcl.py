@@ -2,11 +2,11 @@ from typing import Callable, List, Tuple
 
 import gymnasium
 import tensorflow as tf
-from keras import Input, Model, Sequential
 from keras.engine.input_layer import InputLayer
 from keras.initializers.initializers_v2 import GlorotUniform
-from keras.layers import Concatenate, Activation, Layer
-from keras.layers import LayerNormalization
+from tensorflow.keras import Input, Model, Sequential
+from tensorflow.keras.layers import Concatenate, Activation, Layer
+from tensorflow.keras.layers import LayerNormalization
 
 from CL.rl.models import _choose_head, build_conv_head
 from CL.rl.sac import SAC
@@ -257,7 +257,7 @@ def kl_divergence(
     prior_var = tf.exp(prior_logvar)
 
     mu_diff_term = 0.5 * tf.reduce_sum(
-        (posterior_var + (posterior_mean - prior_mean)**2) / prior_var
+        (posterior_var + (posterior_mean - prior_mean) ** 2) / prior_var
     )
     kl = const_term + log_std_diff + mu_diff_term
     return kl

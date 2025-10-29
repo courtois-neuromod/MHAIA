@@ -7,7 +7,7 @@ from typing import Union, Callable, Type, Dict, Optional
 import gymnasium
 import numpy as np
 import tensorflow as tf
-from keras.optimizers import Optimizer
+from tensorflow.keras.optimizers import Optimizer
 from tensorflow.python.keras.optimizer_v2.learning_rate_schedule import LearningRateSchedule
 
 

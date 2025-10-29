@@ -2,10 +2,10 @@ from typing import Callable, Iterable, List, Tuple
 
 import gymnasium
 import tensorflow as tf
-from keras import Input, Model, Sequential
 from keras.engine.input_layer import InputLayer
-from keras.layers import Conv2D, Flatten, Dense, Activation, Concatenate, LSTM
-from keras.layers import LayerNormalization, TimeDistributed
+from tensorflow.keras import Input, Model, Sequential
+from tensorflow.keras.layers import Conv2D, Flatten, Dense, Activation, Concatenate, LSTM
+from tensorflow.keras.layers import LayerNormalization, TimeDistributed
 
 
 def mlp(state_shape: Tuple[int], num_tasks: int, hidden_sizes: Iterable[int], activation: Callable,
