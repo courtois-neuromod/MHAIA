@@ -6,8 +6,8 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.keras.optimizer_v2.adam import Adam
-from tensorflow.python.keras.optimizer_v2.learning_rate_schedule import ExponentialDecay, PolynomialDecay, LearningRateSchedule
+from keras.optimizers import Adam
+from keras.optimizers.schedules.learning_rate_schedule import ExponentialDecay, PolynomialDecay, LearningRateSchedule
 from tensorflow.python.framework import dtypes
 from tensorflow_probability.python.distributions import Categorical
 
