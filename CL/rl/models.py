@@ -2,10 +2,9 @@ from typing import Callable, Iterable, List, Tuple
 
 import gymnasium
 import tensorflow as tf
-from keras import Input, Model, Sequential
-from keras.engine.input_layer import InputLayer
-from keras.layers import Conv2D, Flatten, Dense, Activation, Concatenate, LSTM
-from keras.layers import LayerNormalization, TimeDistributed
+from tensorflow.keras import Input, Model, Sequential
+from tensorflow.keras.layers import Conv2D, Flatten, Dense, Activation, Concatenate, LSTM, LayerNormalization, \
+    TimeDistributed
 
 
 def mlp(state_shape: Tuple[int], num_tasks: int, hidden_sizes: Iterable[int], activation: Callable,
@@ -79,7 +78,7 @@ class MlpActor(Model):
         self.core = mlp(state_space.shape, num_tasks, hidden_sizes, activation, use_layer_norm, use_lstm, hide_task_id)
         self.head_mu = Sequential(
             [
-                InputLayer(input_shape=(hidden_sizes[-1],)),
+                Input(shape=(hidden_sizes[-1],)),
                 Dense(action_space.n * num_heads),
             ]
         )
@@ -125,7 +124,7 @@ class MlpCritic(Model):
 
         self.core = mlp(state_space.shape, num_tasks, hidden_sizes, activation, use_layer_norm, use_lstm, hide_task_id)
         self.head = Sequential(
-            [InputLayer(input_shape=(hidden_sizes[-1],)), Dense(num_heads * action_space.n)]
+            [Input(shape=(hidden_sizes[-1],)), Dense(num_heads * action_space.n)]
         )
 
     def call(self, obs: tf.Tensor, one_hot_task_id: tf.Tensor) -> tf.Tensor:

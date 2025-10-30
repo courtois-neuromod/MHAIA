@@ -70,7 +70,7 @@ def get_arg_parser():
     arg('--lr_decay', type=str, default='linear', choices=[None, 'linear', 'exponential'],
         help='Method to decay the learning rate over time')
     arg('--lr_decay_rate', type=float, default=0.1, help='Rate to decay the learning')
-    arg('--lr_decay_steps', type=sci2int, default=int(1e5), help='Number of steps to decay the learning rate')
+    arg('--lr_decay_steps', type=sci2int, default=None, help='Number of steps to decay the learning rate')
 
     # Replay buffer
     arg("--replay_size", type=sci2int, default=int(5e4), help="Size of the replay buffer")
@@ -122,15 +122,15 @@ def get_arg_parser():
         help="Whether to reset the critic on task change")
 
     # CL method specific
-    arg("--packnet_retrain_steps", type=int, default=0,
+    arg("--packnet_retrain_steps", type=int, default=10000,
         help="Number of retrain steps after network pruning, which occurs after each task")
     arg("--cl_reg_coef", type=float, default=0.0,
         help="Regularization strength for continual learning methods. Valid for 'l2', 'ewc', 'mas' continual learning methods.")
     arg("--vcl_first_task_kl", type=str2bool, default=False,
         help="If True, use KL regularization also for the first task in 'vcl' continual learning method.")
-    arg("--episodic_mem_per_task", type=int, default=0,
+    arg("--episodic_mem_per_task", type=int, default=10000,
         help="Number of examples to keep in additional memory per task. Valid for 'agem' continual learning method.")
-    arg("--episodic_batch_size", type=int, default=0,
+    arg("--episodic_batch_size", type=int, default=128,
         help="Minibatch size to compute additional loss in 'agem' continual learning method.")
 
     # Observation
