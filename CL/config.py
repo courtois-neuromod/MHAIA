@@ -70,7 +70,7 @@ def get_arg_parser():
     arg('--lr_decay', type=str, default='linear', choices=[None, 'linear', 'exponential'],
         help='Method to decay the learning rate over time')
     arg('--lr_decay_rate', type=float, default=0.1, help='Rate to decay the learning')
-    arg('--lr_decay_steps', type=sci2int, default=int(1e5), help='Number of steps to decay the learning rate')
+    arg('--lr_decay_steps', type=sci2int, default=None, help='Number of steps to decay the learning rate')
 
     # Replay buffer
     arg("--replay_size", type=sci2int, default=int(5e4), help="Size of the replay buffer")

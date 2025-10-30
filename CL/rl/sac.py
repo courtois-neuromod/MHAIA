@@ -6,8 +6,8 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
-from keras.optimizers import Adam
-from keras.optimizers.schedules.learning_rate_schedule import ExponentialDecay, PolynomialDecay, LearningRateSchedule
+from tensorflow.keras.optimizers.legacy import Adam
+from tensorflow.keras.optimizers.schedules import ExponentialDecay, PolynomialDecay, LearningRateSchedule
 from tensorflow.python.framework import dtypes
 from tensorflow_probability.python.distributions import Categorical
 
@@ -213,7 +213,7 @@ class SAC:
 
         # Learning rate schedule
         if lr_decay_steps is None:
-            lr_decay_steps = steps_per_env
+            lr_decay_steps = (steps_per_env - update_after) // update_every * n_updates  # Policy updates per task
         if lr_decay == 'exponential':
             lr = ExponentialDecay(
                 initial_learning_rate=lr,
@@ -225,8 +225,6 @@ class SAC:
                 decay_steps=lr_decay_steps,
                 end_learning_rate=lr * lr_decay_rate,
                 power=1.0,
-                cycle=False,
-                name=None
             )
 
         self.optimizer = Adam(learning_rate=lr)

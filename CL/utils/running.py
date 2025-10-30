@@ -7,8 +7,6 @@ from typing import Union, Callable, Type, Dict, Optional
 import gymnasium
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.optimizers import Optimizer
-from tensorflow.python.keras.optimizer_v2.learning_rate_schedule import LearningRateSchedule
 
 
 def str2bool(v: Union[bool, str]) -> bool:
@@ -22,11 +20,12 @@ def str2bool(v: Union[bool, str]) -> bool:
         raise argparse.ArgumentTypeError("Boolean value expected.")
 
 
-def reset_optimizer(optimizer: Optimizer) -> None:
-    # Decide whether learning rate decay has been applied
-    start_index = 0 if isinstance(optimizer.lr, LearningRateSchedule) else 1
-    # The first variable is the step count which resets the learning rate decay
-    for var in optimizer.variables()[start_index:]:
+def reset_optimizer(optimizer) -> None:
+    # Reset the learning rate schedule
+    if hasattr(optimizer, "iterations"):
+        optimizer.iterations.assign(0)
+    # The first variable is the step count
+    for var in optimizer.variables()[1:]:
         var.assign(tf.zeros_like(var))
 
 
