@@ -2,11 +2,11 @@ from typing import Callable, List, Tuple
 
 import gymnasium
 import tensorflow as tf
-from keras.engine.input_layer import InputLayer
-from keras.initializers.initializers_v2 import GlorotUniform
 from tensorflow.keras import Input, Model, Sequential
 from tensorflow.keras.layers import Concatenate, Activation, Layer
 from tensorflow.keras.layers import LayerNormalization
+from tensorflow.python.keras.engine.input_layer import InputLayer
+from tensorflow.python.keras.initializers.initializers_v2 import GlorotUniform
 
 from CL.rl.models import _choose_head, build_conv_head
 from CL.rl.sac import SAC
