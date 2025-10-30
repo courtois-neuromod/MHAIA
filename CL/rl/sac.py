@@ -214,6 +214,7 @@ class SAC:
         # Learning rate schedule
         if lr_decay_steps is None:
             lr_decay_steps = (steps_per_env - update_after) // update_every * n_updates  # Policy updates per task
+            lr_decay_steps *= (2 + int(alpha == "auto"))  # For actor and critic (and alpha if auto)
         if lr_decay == 'exponential':
             lr = ExponentialDecay(
                 initial_learning_rate=lr,
