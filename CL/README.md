@@ -10,17 +10,17 @@ $ pip install COOM[cl]
 ```
 
 ## Running Experiments
-You can run single task or continual learning experiments with `run_single.py` and `run_cl.py` scripts, respectively.
-To see available script arguments, run with `--help` option, e.g. `python run_single.py --help`
+You can run single task or continual learning experiments with `CL/run_single.py` and `CL/run_cl.py` scripts, respectively.
+To see available script arguments, run with `--help` option, e.g. `python CL/run_single.py --help`
 
 ### Single task
 ```
-python run_single.py --scenario pitfall
+python CL/run_single.py --scenario pitfall
 ```
 
 ### Continual learning
 ```
-python run_cl.py --sequence CO4 --cl_method packnet
+python CL/run_cl.py --sequence CO4 --cl_method packnet
 ```
 
 ## Reproducing Experimental Results
@@ -56,7 +56,7 @@ python CL/run_single.py --scenario [SCENARIO] --envs [ENVS] --seed [SEED] --no_t
 ### Network plasticity
 To reproduce our network plasticity experiments from the paper, run the following command:
 ```
-python CL/run_continual.py --sequence CO8 --seed [SEED] --repeat_sequence 10 --no_test --steps_per_env 100000
+python CL/run_cl.py --sequence CO8 --seed [SEED] --repeat_sequence 10 --no_test --steps_per_env 100000
 ```
 
 ### Method Variations
@@ -66,21 +66,21 @@ To reproduce our method variations experiments from the paper, run the following
 2. Random Shift
 3. Random Noise
 ```
-python CL/run_continual.py --sequence CO8 --cl_method [METHOD] --seed [SEED] --augment --augmentation conv
-python CL/run_continual.py --sequence CO8 --cl_method [METHOD] --seed [SEED] --augment --augmentation shift
-python CL/run_continual.py --sequence CO8 --cl_method [METHOD] --seed [SEED] --augment --augmentation noise
+python CL/run_cl.py --sequence CO8 --cl_method [METHOD] --seed [SEED] --augment --augmentation conv
+python CL/run_cl.py --sequence CO8 --cl_method [METHOD] --seed [SEED] --augment --augmentation shift
+python CL/run_cl.py --sequence CO8 --cl_method [METHOD] --seed [SEED] --augment --augmentation noise
 ```
 #### Prioritized Experience Replay (PER)
 ```
-python CL/run_continual.py --sequence CO8 --cl_method [METHOD] --seed [SEED] --buffer_type prioritized
+python CL/run_cl.py --sequence CO8 --cl_method [METHOD] --seed [SEED] --buffer_type prioritized
 ```
 #### LSTM
 ```
-python CL/run_continual.py --sequence CO8 --cl_method [METHOD] --seed [SEED] --use_lstm
+python CL/run_cl.py --sequence CO8 --cl_method [METHOD] --seed [SEED] --use_lstm
 ```
 #### Critic Regularization
 ```
-python CL/run_continual.py --sequence CO8 --cl_method [METHOD] --seed [SEED] --regularize_critic
+python CL/run_cl.py --sequence CO8 --cl_method [METHOD] --seed [SEED] --regularize_critic
 ```
 
 ## Command Line Arguments
