@@ -8,13 +8,12 @@ def get_arg_parser():
     def arg(*args, **kwargs):
         parser.add_argument(*args, **kwargs)
 
-    parser = argparse.ArgumentParser(description="Continual Doom")
+    parser = argparse.ArgumentParser(description="Continual Super Mario Bros")
 
     # Core
     arg('--scenarios', type=str, nargs="+", default=None,
-        choices=['health_gathering', 'run_and_gun', 'chainsaw', 'raise_the_roof',
-                 'floor_is_lava', 'hide_and_seek', 'arms_dealer', 'pitfall'])
-    arg("--envs", type=str, nargs="+", default=['default'], help="Name of the environments in the scenario(s) to run")
+        choices=['world1', 'world2', 'world3', 'world4', 'world5', 'world6', 'world7', 'world8'])
+    arg("--envs", type=str, nargs="+", default=['Level1-1'], help="Name of the environments in the scenario(s) to run")
     arg("--test_envs", type=str, nargs="+", default=[],
         help="Name of the environments to periodically evaluate the agent on")
     arg("--no_test", default=False, action='store_true', help="If True, no test environments will be used")
@@ -23,7 +22,8 @@ def get_arg_parser():
     arg("--sparse_rewards", default=False, action='store_true', help="Whether to use the sparse reward setting")
 
     # Continual learning
-    arg("--sequence", type=str, default=None, choices=['CD4', 'CD8', 'CD16', 'CO4', 'CO8', 'CO16', 'COC', 'MIXED'],
+    arg("--sequence", type=str, default=None,
+        choices=['WORLD_PROGRESSION_4', 'WORLD_PROGRESSION_8', 'STAGE_TYPES_4', 'WORLD_COMPLETE', 'DIFFICULTY_CURVE', 'MIXED_WORLDS'],
         help="Name of the continual learning sequence")
     arg("--cl_method", type=str, choices=[None, "clonex", "owl", "l2", "ewc", "mas", "vcl", "packnet", "agem"],
         default=None, help="If None, the fine-tuning method will be used")
@@ -31,13 +31,11 @@ def get_arg_parser():
     arg('--num_repeats', type=int, default=1, help='How many times to repeat the sequence')
     arg('--random_order', default=False, action='store_true', help='Whether to randomize the order of the tasks')
 
-    # DOOM
+    # Mario Environment
     arg('--render', default=False, action='store_true', help='Render the environment')
     arg('--render_sleep', type=float, default=0.0, help='Sleep time between frames when rendering')
     arg('--variable_queue_length', type=int, default=5, help='Number of game variables to remember')
     arg('--frame_skip', type=int, default=4, help='Number of frames to skip')
-    arg('--resolution', type=str, default=None, choices=['800X600', '640X480', '320X240', '160X120'],
-        help='Screen resolution of the game')
 
     # Save/Load
     arg("--save_freq_epochs", type=int, default=25, help="Save the model parameters after n epochs")
@@ -140,30 +138,12 @@ def get_arg_parser():
     arg("--augment", default=False, action='store_true', help="Whether to use image augmentation")
     arg("--augmentation", type=str, default=None, choices=['conv', 'shift', 'noise'], help="Type of image augmentation")
 
-    # Reward
-    arg('--reward_frame_survived', default=0.01, type=float, help='For surviving a frame')
-    arg('--reward_switch_pressed', default=15.0, type=float, help='For pressing a switch')
-    arg('--reward_kill_dtc', default=1.0, type=float, help='For eliminating an enemy')
-    arg('--reward_kill_rag', default=5.0, type=float, help='For eliminating an enemy')
-    arg('--reward_kill_chain', default=5.0, type=float, help='For eliminating an enemy')
-    arg('--reward_health_hg', default=15.0, type=float, help='For picking up a health kit')
-    arg('--reward_health_has', default=5.0, type=float, help='For picking a health kit')
-    arg('--reward_weapon_ad', default=15.0, type=float, help='For picking a weapon')
-    arg('--reward_delivery', default=30.0, type=float, help='For delivering an item')
-    arg('--reward_platform_reached', default=1.0, type=float, help='For reaching a platform')
-    arg('--reward_on_platform', default=0.1, type=float, help='For staying on a platform')
-    arg('--reward_scaler_pitfall', default=0.1, type=float, help='Reward scaler for traversal')
-    arg('--reward_scaler_traversal', default=1e-3, type=float, help='Reward scaler for traversal')
+    # Reward - Mario specific
+    arg('--reward_position', default=1.0, type=float, help='Reward for horizontal progress (x-position)')
+    arg('--reward_coin', default=10.0, type=float, help='Reward for collecting a coin')
 
-    # Penalty
-    arg('--penalty_passivity', default=-0.1, type=float, help='Penalty for not moving')
-    arg('--penalty_death', default=-1.0, type=float, help='Negative reward for dying')
-    arg('--penalty_projectile', default=-0.01, type=float, help='Negative reward for projectile hit')
-    arg('--penalty_health_hg', default=-0.01, type=float, help='Negative reward for losing health')
-    arg('--penalty_health_dtc', default=-1.0, type=float, help='Negative reward for losing health')
-    arg('--penalty_health_has', default=-5.0, type=float, help='Negative reward for losing health')
-    arg('--penalty_lava', default=-0.1, type=float, help='Penalty for stepping on lava')
-    arg('--penalty_ammo_used', default=-0.1, type=float, help='Negative reward for using ammo')
+    # Penalty - Mario specific
+    arg('--penalty_time', default=-0.01, type=float, help='Time penalty per frame to encourage fast completion')
 
     return parser
 

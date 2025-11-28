@@ -29,15 +29,22 @@ git clone --recurse-submodules https://github.com/courtois-neuromod/GHAIA
 cd GHAIA
 ```
 
-3. Install stable-retro (required for Mario environments)
+3. Create and activate a virtual environment
 ```bash
-pip install stable-retro
+python -m venv env
+source env/bin/activate  # On Windows: env\Scripts\activate
 ```
 
-4. Install GHAIA from source
+4. Install GHAIA with all dependencies
 ```bash
+# For basic Mario environment usage
 pip install -e .
+
+# For continual learning experiments (includes TensorFlow, etc.)
+pip install -e ".[cl]"
 ```
+
+**Note**: The `[cl]` extra includes TensorFlow, TensorBoard, wandb, and other dependencies required for running continual learning experiments. If you only need to run single Mario levels, the basic installation (`pip install -e .`) is sufficient.
 
 ### ROM Setup
 
@@ -287,6 +294,55 @@ GHAIA/
 ## Training Agents
 
 The benchmark is compatible with any RL algorithm that works with Gymnasium environments. Example training scripts using SAC and other continual learning methods can be found in the `CL/` directory.
+
+### Running Continual Learning Experiments
+
+After installing with `pip install -e ".[cl]"`, you can run CL experiments:
+
+```bash
+# Activate the environment
+source env/bin/activate
+
+# Simple fine-tuning baseline (no CL method)
+python -m CL.run_cl --sequence WORLD_PROGRESSION_4 \
+  --steps_per_env 50000 \
+  --seed 0 \
+  --multihead_archs False
+
+# With a CL method (e.g., L2 regularization)
+python -m CL.run_cl --sequence WORLD_PROGRESSION_8 \
+  --cl_method l2 \
+  --cl_reg_coef 100 \
+  --steps_per_env 50000 \
+  --seed 42 \
+  --multihead_archs False
+
+# With PackNet
+python -m CL.run_cl --sequence WORLD_PROGRESSION_4 \
+  --cl_method packnet \
+  --packnet_retrain_steps 10000 \
+  --steps_per_env 100000 \
+  --seed 0 \
+  --multihead_archs False
+```
+
+**Available CL Methods:**
+- `l2` - L2 weight regularization
+- `ewc` - Elastic Weight Consolidation
+- `mas` - Memory Aware Synapses
+- `packnet` - PackNet (network pruning)
+- `agem` - Averaged Gradient Episodic Memory
+- `vcl` - Variational Continual Learning
+- `owl` - Online Weighted Laplacian
+- `clonex` - ClonEx
+
+**Important Notes:**
+- Use `--multihead_archs False` to avoid architecture dimension mismatches
+- Results are logged to `./logs/` directory
+- Add `--with_wandb` for Weights & Biases logging
+- See `python -m CL.run_cl --help` for all options
+
+For detailed CL configurations and reproducing paper results, see the [CL README](CL/README.md).
 
 ## Citation
 

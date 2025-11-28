@@ -157,7 +157,9 @@ class SAC:
         self.test_threads = []
         self.obs_shape = env.observation_space.shape
         self.act_dim = env.action_space.n
-        self.max_episode_len = env.get_active_env().game.get_episode_timeout()
+        # Mario doesn't have episode timeout like DOOM, use a reasonable default
+        # 18000 frames ~= 5 minutes at 60 FPS (adequate for most Mario levels)
+        self.max_episode_len = getattr(env.get_active_env().game, 'get_episode_timeout', lambda: 18000)()
         logger.log(f"Observations shape: {self.obs_shape}", color='blue')
         logger.log(f"Actions shape: {self.act_dim}", color='blue')
 
@@ -269,7 +271,7 @@ class SAC:
 
     def on_task_start(self, current_task_idx: int) -> None:
         self.logger.log(f'Task {current_task_idx}-{self.env.task} started', color='white')
-        self.max_episode_len = self.env.get_active_env().game.get_episode_timeout()
+        self.max_episode_len = getattr(self.env.get_active_env().game, 'get_episode_timeout', lambda: 18000)()
 
     def on_task_end(self, current_task_idx: int) -> None:
         self.logger.log(f'Task {current_task_idx} finished', color='white')

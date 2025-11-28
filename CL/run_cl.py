@@ -74,14 +74,13 @@ def main(parser: argparse.ArgumentParser):
 
     # Configure the arguments
     args = parser.parse_args()
-    doom_kwargs = dict(
+    mario_kwargs = dict(
         num_tasks=num_tasks,
         frame_skip=args.frame_skip,
         record_every=args.record_every,
         seed=args.seed,
         render=args.render,
         render_sleep=args.render_sleep,
-        resolution=args.resolution,
         variable_queue_length=args.variable_queue_length,
         action_space_fn=build_multi_discrete_actions,
     )
@@ -93,11 +92,11 @@ def main(parser: argparse.ArgumentParser):
 
     # Create the test tasks
     test_tasks = make_envs(test_scenarios, test_tasks, args.random_order, task_idx,
-                           scenario_kwargs, doom_kwargs, wrapper_config)
+                           scenario_kwargs, mario_kwargs, wrapper_config)
 
     # Create the continual learning environment
     cl_env = ContinualLearningEnv(sequence, args.steps_per_env, args.start_from, args.random_order,
-                                  scenario_kwargs, doom_kwargs, wrapper_config)
+                                  scenario_kwargs, mario_kwargs, wrapper_config)
 
     num_heads = num_tasks if args.multihead_archs else 1
     policy_kwargs = dict(
