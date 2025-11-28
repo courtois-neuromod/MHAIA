@@ -18,9 +18,9 @@ from CL.rl.models import MlpActor
 from CL.rl.sac import SAC
 from CL.utils.logging import EpochLogger, WandBLogger
 from CL.utils.running import get_activation_from_str
-from COOM.env.builder import make_envs, build_multi_discrete_actions
-from COOM.env.continual import ContinualLearningEnv
-from COOM.utils.config import Sequence, Scenario, sequence_scenarios, sequence_tasks, default_wrapper_config, \
+from GHAIA.env.builder import make_envs, build_multi_discrete_actions
+from GHAIA.env.continual import ContinualLearningEnv
+from GHAIA.utils.config import Sequence, Scenario, sequence_scenarios, sequence_tasks, default_wrapper_config, \
     scenario_config
 from config import update_wrapper_config, get_arg_parser
 

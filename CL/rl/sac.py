@@ -17,7 +17,7 @@ from CL.rl import models
 from CL.rl.exploration import ExplorationHelper
 from CL.utils.logging import EpochLogger
 from CL.utils.running import reset_optimizer, reset_weights, set_seed, create_one_hot_vec
-from COOM.env.base import BaseEnv
+from GHAIA.env.base import BaseEnv
 
 
 class SAC:

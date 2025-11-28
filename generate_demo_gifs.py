@@ -9,8 +9,8 @@ import gymnasium as gym
 import numpy as np
 from PIL import Image
 
-from COOM.env.builder import make_env
-from COOM.utils.config import Scenario
+from GHAIA.env.builder import make_env
+from GHAIA.utils.config import Scenario
 
 
 def generate_gif(scenario: Scenario, task: str, output_path: str, max_steps: int = 500, fps: int = 15):

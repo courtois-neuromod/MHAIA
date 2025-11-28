@@ -1,7 +1,7 @@
 import argparse
 
-from COOM.env.continual import ContinualLearningEnv
-from COOM.utils.config import Sequence
+from GHAIA.env.continual import ContinualLearningEnv
+from GHAIA.utils.config import Sequence
 
 
 def main(args: argparse.Namespace):

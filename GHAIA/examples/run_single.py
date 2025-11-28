@@ -1,7 +1,7 @@
 import argparse
 
-from COOM.env.builder import make_env
-from COOM.utils.config import Scenario
+from GHAIA.env.builder import make_env
+from GHAIA.utils.config import Scenario
 
 
 def main(args: argparse.Namespace):

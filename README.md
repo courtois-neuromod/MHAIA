@@ -4,6 +4,8 @@
 
 **GHAIA** (Games Human-AI Alignment) is a continual reinforcement learning benchmark based on **Super Mario Bros**, designed to evaluate AI agents' ability to learn sequential tasks while maintaining alignment with human gameplay patterns and preferences. The benchmark consists of task sequences across the 8 worlds of Super Mario Bros, with 4 stages per world.
 
+📄 **Paper**: [GHAIA on OpenReview](https://openreview.net/forum?id=YAVB439L9X)
+
 <p align="center">
   <img src="assets/gifs/mario_demo1.gif" alt="Mario Demo 1" style="vertical-align: top;"/>
   <img src="assets/gifs/mario_demo2.gif" alt="Mario Demo 2" style="vertical-align: top;"/>
@@ -130,8 +132,8 @@ Alternate between different worlds and stages:
 ### Run a Single Level
 
 ```python
-from COOM.env.builder import make_env
-from COOM.utils.config import Scenario
+from GHAIA.env.builder import make_env
+from GHAIA.utils.config import Scenario
 
 # Create a World 1 environment running Level 1-1
 env = make_env(Scenario.WORLD1, task='Level1-1')
@@ -149,8 +151,8 @@ env.close()
 ### Run a Continual Learning Sequence
 
 ```python
-from COOM.env.continual import ContinualLearningEnv
-from COOM.utils.config import Sequence
+from GHAIA.env.continual import ContinualLearningEnv
+from GHAIA.utils.config import Sequence
 
 # Create a continual learning environment
 cl_env = ContinualLearningEnv(
@@ -172,12 +174,12 @@ cl_env.close()
 
 Test a single world:
 ```bash
-$ python COOM/examples/run_single.py --scenario world1 --task Level1-1 --render
+$ python GHAIA/examples/run_single.py --scenario world1 --task Level1-1 --render
 ```
 
 Test a continual learning sequence:
 ```bash
-$ python COOM/examples/run_sequence.py --sequence WORLD_PROGRESSION_4 --steps-per-env 1000 --render
+$ python GHAIA/examples/run_sequence.py --sequence WORLD_PROGRESSION_4 --steps-per-env 1000 --render
 ```
 
 ## Custom Integration Path
@@ -253,18 +255,19 @@ The benchmark is compatible with any RL algorithm that works with Gymnasium envi
 If you use GHAIA in your research, please cite both the GHAIA benchmark and the original COOM framework it builds upon:
 
 ```bibtex
-@article{ghaia2024,
-  title={GHAIA: Games Human-AI Alignment Benchmark},
-  author={[To be updated]},
-  journal={OpenReview},
-  year={2024},
-  url={https://openreview.net/pdf?id=YAVB439L9X}
+@inproceedings{harel2025human,
+  title={Human-AI Alignment of Learning Trajectories in Video Games: a continual RL benchmark proposal},
+  author={Harel*, Yann and Bellec*, Lune P and Paugam, Fran{\c{c}}ois and Delhaye, Hugo and Durand, Audrey},
+  booktitle={Reinforcement Learning and Video Games Workshop@ RLC 2025}
 }
 
-@inproceedings{tomilin2023coom,
-  title={COOM: A Game Benchmark for Continual Reinforcement Learning},
-  author={Tomilin, Tristan and Ghumare, Meng Fang and others},
-  booktitle={Thirty-seventh Conference on Neural Information Processing Systems Datasets and Benchmarks Track},
+
+@article{tomilin2023coom,
+  title={COOM: A game benchmark for continual reinforcement learning},
+  author={Tomilin, Tristan and Fang, Meng and Zhang, Yudi and Pechenizkiy, Mykola},
+  journal={Advances in Neural Information Processing Systems},
+  volume={36},
+  pages={67794--67832},
   year={2023}
 }
 ```

@@ -7,7 +7,7 @@ Run this to verify all dependencies are correctly installed.
 import sys
 
 print("=" * 60)
-print("COOM Mario Setup Diagnostic")
+print("GHAIA Setup Diagnostic")
 print("=" * 60)
 print()
 
@@ -57,35 +57,35 @@ except ImportError as e:
 
 print()
 
-# Test COOM imports
-print("Testing COOM modules...")
+# Test GHAIA imports
+print("Testing GHAIA modules...")
 try:
-    from COOM.env.scenario import MarioEnv
-    print("✓ COOM.env.scenario.MarioEnv")
+    from GHAIA.env.scenario import MarioEnv
+    print("✓ GHAIA.env.scenario.MarioEnv")
 except ImportError as e:
-    print("✗ COOM.env.scenario.MarioEnv")
-    errors.append(("COOM.env.scenario", str(e)))
+    print("✗ GHAIA.env.scenario.MarioEnv")
+    errors.append(("GHAIA.env.scenario", str(e)))
 
 try:
-    from COOM.env.builder import make_env, build_mario_actions
-    print("✓ COOM.env.builder")
+    from GHAIA.env.builder import make_env, build_mario_actions
+    print("✓ GHAIA.env.builder")
 except ImportError as e:
-    print("✗ COOM.env.builder")
-    errors.append(("COOM.env.builder", str(e)))
+    print("✗ GHAIA.env.builder")
+    errors.append(("GHAIA.env.builder", str(e)))
 
 try:
-    from COOM.utils.config import Scenario, Sequence
-    print("✓ COOM.utils.config")
+    from GHAIA.utils.config import Scenario, Sequence
+    print("✓ GHAIA.utils.config")
 except ImportError as e:
-    print("✗ COOM.utils.config")
-    errors.append(("COOM.utils.config", str(e)))
+    print("✗ GHAIA.utils.config")
+    errors.append(("GHAIA.utils.config", str(e)))
 
 try:
-    from COOM.wrappers.reward import PositionRewardWrapper
-    print("✓ COOM.wrappers.reward")
+    from GHAIA.wrappers.reward import PositionRewardWrapper
+    print("✓ GHAIA.wrappers.reward")
 except ImportError as e:
-    print("✗ COOM.wrappers.reward")
-    errors.append(("COOM.wrappers.reward", str(e)))
+    print("✗ GHAIA.wrappers.reward")
+    errors.append(("GHAIA.wrappers.reward", str(e)))
 
 print()
 
@@ -143,5 +143,5 @@ else:
     print("✓ ALL CHECKS PASSED!")
     print()
     print("Your setup is ready. Try running:")
-    print("  python COOM/examples/run_single.py --scenario world1 --task Level1-1")
+    print("  python GHAIA/examples/run_single.py --scenario world1 --task Level1-1")
     sys.exit(0)

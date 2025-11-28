@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 
 # Required dependencies
-coom_requirements = [
+ghaia_requirements = [
     "stable-retro",
     "opencv-python",
     "scipy==1.11.4",
@@ -23,17 +23,17 @@ results_processing_requirements = [
 ]
 
 setup(
-    name="COOM",
-    description="COOM: Benchmarking Continual Reinforcement Learning on Super Mario Bros",
+    name="GHAIA",
+    description="GHAIA: Games Human-AI Alignment Benchmark - Continual RL on Super Mario Bros",
     version='2.0.0',
-    url='https://github.com/TTomilin/COOM',
-    author='Tristan Tomilin',
-    author_email='tristan.tomilin@hotmail.com',
+    url='https://github.com/courtois-neuromod/GHAIA',
+    author='Courtois NeuroMod',
+    author_email='',
     license='MIT',
-    keywords=["continual learning", "super mario bros", "stable-retro", "reinforcement learning", "benchmarking"],
+    keywords=["human-ai alignment", "continual learning", "super mario bros", "stable-retro", "reinforcement learning", "benchmarking"],
     packages=find_packages(),
     include_package_data=True,
-    install_requires=coom_requirements,
+    install_requires=ghaia_requirements,
     extras_require={
         'cl': cl_requirements,
         'results': results_processing_requirements,

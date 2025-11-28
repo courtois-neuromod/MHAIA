@@ -1,14 +1,14 @@
 from enum import Enum
 
-from COOM.env.scenarios.world1.world1 import World1
-from COOM.env.scenarios.world2.world2 import World2
-from COOM.env.scenarios.world3.world3 import World3
-from COOM.env.scenarios.world4.world4 import World4
-from COOM.env.scenarios.world5.world5 import World5
-from COOM.env.scenarios.world6.world6 import World6
-from COOM.env.scenarios.world7.world7 import World7
-from COOM.env.scenarios.world8.world8 import World8
-from COOM.utils.augmentations import random_conv, random_shift, random_noise
+from GHAIA.env.scenarios.world1.world1 import World1
+from GHAIA.env.scenarios.world2.world2 import World2
+from GHAIA.env.scenarios.world3.world3 import World3
+from GHAIA.env.scenarios.world4.world4 import World4
+from GHAIA.env.scenarios.world5.world5 import World5
+from GHAIA.env.scenarios.world6.world6 import World6
+from GHAIA.env.scenarios.world7.world7 import World7
+from GHAIA.env.scenarios.world8.world8 import World8
+from GHAIA.utils.augmentations import random_conv, random_shift, random_noise
 
 
 class Augmentation(Enum):
