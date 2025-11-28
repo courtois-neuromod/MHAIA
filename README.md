@@ -15,35 +15,73 @@
 
 ### Prerequisites
 - Python 3.8+
-- A Super Mario Bros ROM file (you must legally own this)
+- Super Mario Bros ROM file (see ROM setup below)
 
 ### Install from source:
 
 1. Clone the repository
 ```bash
-$ git clone --recurse-submodules https://github.com/courtois-neuromod/GHAIA
+git clone --recurse-submodules https://github.com/courtois-neuromod/GHAIA
 ```
 
 2. Navigate into the repository
 ```bash
-$ cd GHAIA
+cd GHAIA
 ```
 
 3. Install stable-retro (required for Mario environments)
 ```bash
-$ pip install stable-retro
+pip install stable-retro
 ```
 
 4. Install GHAIA from source
 ```bash
-$ pip install -e .
+pip install -e .
 ```
 
-5. Set up the Mario ROM integration
+### ROM Setup
+
+You need the Super Mario Bros (NES) ROM file to use GHAIA. There are two methods:
+
+#### Method 1: Via DataLad (Recommended for CNeuromod members)
+
+If you have access to the **CNeuromod dataset**, you can retrieve the ROM and game state files using DataLad:
+
 ```bash
-# The mario.stimuli folder is already included in the repository
-# Make sure you have the Super Mario Bros ROM file and import it using retro
-$ python -m retro.import /path/to/your/roms/
+# Navigate to the mario.stimuli submodule
+cd mario.stimuli
+
+# Install DataLad if not already installed
+pip install datalad
+
+# Configure your AWS credentials (provided by the CNeuromod team)
+# You will need an AWS access key and secret key with access to the CNeuromod S3 bucket
+export AWS_ACCESS_KEY_ID=your_key_here
+export AWS_SECRET_ACCESS_KEY=your_secret_here
+
+# Get the ROM and level state files
+datalad get SuperMarioBros-Nes/
+```
+
+**Note**: Access to the CNeuromod dataset requires approval. Contact the [Courtois NeuroMod team](https://www.cneuromod.ca/) to request access.
+
+#### Method 2: Import Your Own ROM
+
+If you legally own Super Mario Bros, you can import your ROM file:
+
+```bash
+# Import your ROM file into stable-retro
+python -m retro.import /path/to/your/roms/
+```
+
+**Required ROM specifications:**
+- **Game**: Super Mario Bros (NES)
+- **Region**: USA/North America (NTSC)
+- **SHA-1 Hash**: `facee9c577a5262dbe33ac4930bb0b58c8c037f7`
+
+You can verify your ROM hash with:
+```bash
+sha1sum /path/to/your/SuperMarioBros.nes
 ```
 
 ## Worlds and Levels
@@ -174,12 +212,12 @@ cl_env.close()
 
 Test a single world:
 ```bash
-$ python GHAIA/examples/run_single.py --scenario world1 --task Level1-1 --render
+python GHAIA/examples/run_single.py --scenario world1 --task Level1-1 --render
 ```
 
 Test a continual learning sequence:
 ```bash
-$ python GHAIA/examples/run_sequence.py --sequence WORLD_PROGRESSION_4 --steps-per-env 1000 --render
+python GHAIA/examples/run_sequence.py --sequence WORLD_PROGRESSION_4 --steps-per-env 1000 --render
 ```
 
 ## Custom Integration Path
