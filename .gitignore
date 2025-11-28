@@ -92,7 +92,7 @@ celerybeat-schedule
 # Environments
 .env
 .venv
-#env/
+env/
 venv/
 ENV/
 env.bak/
@@ -134,7 +134,7 @@ dmypy.json
 .DS_Store
 
 # no submodules, please
-.gitmodules
+# .gitmodules
 
 # pipenv
 # Including these for now, since pipenv is not the authoritative environment

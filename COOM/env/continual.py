@@ -6,18 +6,18 @@ from numpy import ndarray
 
 from COOM.env.base import BaseEnv
 from COOM.env.builder import make_sequence
-from COOM.env.scenario import DoomEnv
+from COOM.env.scenario import MarioEnv
 from COOM.utils.config import Sequence
 
 
 class ContinualLearningEnv(BaseEnv):
     """
-    A class for creating a continual learning environment composed of a sequence of Doom environments,
+    A class for creating a continual learning environment composed of a sequence of Mario environments,
     suitable for task-incremental learning.
 
     Attributes:
         steps_per_env (int): The number of steps to be executed in each environment before switching to the next.
-        envs (List[DoomEnv]): A list of Doom environment instances created based on the specified sequence.
+        envs (List[MarioEnv]): A list of Mario environment instances created based on the specified sequence.
         _num_tasks (int): The total number of tasks (environments) in the continual learning setup.
         steps (int): The total number of steps across all environments.
         cur_seq_idx (int): The current index of the active environment in the sequence.
@@ -29,7 +29,7 @@ class ContinualLearningEnv(BaseEnv):
         start_from (int, optional): The starting index within the sequence of environments. Defaults to 0.
         random_order (bool, optional): If set to True, the order of environments in the sequence is randomized. Defaults to False.
         scenario_config (List[Dict[str, any]], optional): A list of dictionaries with specific keyword arguments for each scenario in the sequence.
-        doom_config (Dict[str, any], optional): Common keyword arguments applicable to all Doom environments in the sequence.
+        mario_config (Dict[str, any], optional): Common keyword arguments applicable to all Mario environments in the sequence.
         wrapper_config (Dict[str, any], optional): Configuration for observation and reward wrappers to be applied to each environment.
     """
 
@@ -39,11 +39,11 @@ class ContinualLearningEnv(BaseEnv):
                  start_from: int = 0,
                  random_order: bool = False,
                  scenario_config: List[Dict[str, any]] = None,
-                 doom_config: Dict[str, any] = None,
+                 mario_config: Dict[str, any] = None,
                  wrapper_config: Dict[str, any] = None,
                  ):
         self.steps_per_env = steps_per_env
-        self.envs = make_sequence(sequence, random_order, scenario_config, doom_config, wrapper_config)
+        self.envs = make_sequence(sequence, random_order, scenario_config, mario_config, wrapper_config)
         self._num_tasks = len(self.envs)
         self.steps = steps_per_env * self.num_tasks
         self.cur_seq_idx = start_from
@@ -53,7 +53,7 @@ class ContinualLearningEnv(BaseEnv):
         if self.cur_step >= self.steps:
             raise RuntimeError("Steps limit exceeded for ContinualLearningEnv!")
 
-    def get_active_env(self) -> DoomEnv:
+    def get_active_env(self) -> MarioEnv:
         return self.tasks[self.cur_seq_idx]
 
     @property

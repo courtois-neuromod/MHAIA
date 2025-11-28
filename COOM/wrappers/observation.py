@@ -4,7 +4,7 @@ import numpy as np
 from gymnasium.spaces import Box
 from typing import Tuple, Dict, Any
 
-from COOM.env.scenario import DoomEnv
+from COOM.env.scenario import MarioEnv
 from COOM.utils.utils import combine_frames
 from COOM.utils.config import Augmentation
 
@@ -68,7 +68,7 @@ class RGBStack(gymnasium.Wrapper):
 class Augment(gymnasium.Wrapper):
     """Augment the visual observation"""
 
-    def __init__(self, env: DoomEnv, augmentation: str):
+    def __init__(self, env: MarioEnv, augmentation: str):
         super(Augment, self).__init__(env)
         assert augmentation.upper() in Augmentation.__members__, f"Unknown augmentation: {augmentation}"
         self.augmentation = Augmentation[augmentation.upper()].value

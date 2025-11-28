@@ -1,9 +1,10 @@
 import itertools
 from typing import Dict, List
+import numpy as np
 
 from gymnasium.wrappers import NormalizeObservation, FrameStack, RecordVideo
 
-from COOM.env.scenario import DoomEnv
+from COOM.env.scenario import MarioEnv
 from COOM.utils.config import Sequence, sequence_scenarios, sequence_tasks, scenario_config, Scenario, \
     default_wrapper_config
 from COOM.wrappers.observation import Augment, Resize, Rescale, RGBStack
@@ -12,28 +13,28 @@ from COOM.wrappers.observation import Augment, Resize, Rescale, RGBStack
 def make_sequence(sequence: Sequence,
                   random_order: bool = False,
                   scenarios_kwargs: List[Dict[str, any]] = None,
-                  doom_kwargs: Dict[str, any] = None,
+                  mario_kwargs: Dict[str, any] = None,
                   wrapper_config: Dict[str, any] = None,
-                  task_idx: int = None) -> List[DoomEnv]:
+                  task_idx: int = None) -> List[MarioEnv]:
     """
-    Creates a list of Doom environments based on the given sequence configuration.
+    Creates a list of Mario environments based on the given sequence configuration.
 
     Args:
         sequence (Sequence): The sequence enumeration to determine which scenarios to include.
         random_order (bool): Whether to randomize the order of the scenarios.
         task_idx (int): Optional task index to be used for all environments.
         scenarios_kwargs (List[Dict[str, any]]): List of dictionaries with specific kwargs for each scenario.
-        doom_kwargs (Dict[str, any]): Common kwargs applicable to all Doom environments.
+        mario_kwargs (Dict[str, any]): Common kwargs applicable to all Mario environments.
         wrapper_config (Dict[str, any]): Configuration for environment wrappers.
 
     Returns:
-        List[DoomEnv]: A list of Doom environment instances.
+        List[MarioEnv]: A list of Mario environment instances.
     """
 
     # Retrieve scenarios and tasks based on the sequence
     scenarios = sequence_scenarios[sequence]
     tasks = sequence_tasks[sequence]
-    return make_envs(scenarios, tasks, random_order, task_idx, scenarios_kwargs, doom_kwargs, wrapper_config)
+    return make_envs(scenarios, tasks, random_order, task_idx, scenarios_kwargs, mario_kwargs, wrapper_config)
 
 
 def make_envs(scenarios: List[Scenario],
@@ -41,8 +42,23 @@ def make_envs(scenarios: List[Scenario],
               random_order: bool = False,
               task_idx: int = None,
               scenarios_kwargs: List[Dict[str, any]] = None,
-              doom_kwargs: Dict[str, any] = None,
-              wrapper_config: Dict[str, any] = None) -> List[DoomEnv]:
+              mario_kwargs: Dict[str, any] = None,
+              wrapper_config: Dict[str, any] = None) -> List[MarioEnv]:
+    """
+    Creates multiple Mario environments from scenarios and tasks.
+
+    Args:
+        scenarios: List of Scenario enums
+        tasks: List of task/level names
+        random_order: Whether to shuffle scenarios and tasks
+        task_idx: Optional task index override
+        scenarios_kwargs: Per-scenario keyword arguments
+        mario_kwargs: Common Mario environment arguments
+        wrapper_config: Wrapper configuration
+
+    Returns:
+        List of created MarioEnv instances
+    """
 
     # Optionally shuffle scenarios and tasks for randomization
     if random_order:
@@ -50,9 +66,9 @@ def make_envs(scenarios: List[Scenario],
         random.shuffle(scenarios)
         random.shuffle(tasks)
 
-    # Default kwargs for scenarios and Doom environments
+    # Default kwargs for scenarios and Mario environments
     scenarios_kwargs = scenarios_kwargs or [{} for _ in range(len(scenarios))]
-    doom_kwargs = doom_kwargs or {}
+    mario_kwargs = mario_kwargs or {}
 
     # Create and wrap environments
     envs = []
@@ -63,49 +79,61 @@ def make_envs(scenarios: List[Scenario],
         task = pair[1]
         scenario = scenario_and_kwargs[0]
         scenario_kwargs = scenario_and_kwargs[1]
-        env = make_env(scenario, task, task_id, scenario_kwargs, doom_kwargs, wrapper_config)
+        env = make_env(scenario, task, task_id, scenario_kwargs, mario_kwargs, wrapper_config)
         envs.append(env)
     return envs
 
 
 def make_env(scenario: Scenario,
-             task: str = 'default',
+             task: str = 'Level1-1',
              task_idx: int = 0,
              scenario_kwargs: Dict[str, any] = None,
-             doom_kwargs: Dict[str, any] = None,
-             wrapper_config: Dict[str, any] = None) -> DoomEnv:
+             mario_kwargs: Dict[str, any] = None,
+             wrapper_config: Dict[str, any] = None) -> MarioEnv:
     """
-    Creates a single Doom environment instance with specified configurations.
+    Creates a single Mario environment instance with specified configurations.
 
     Args:
-        scenario (Scenario): The specific Doom scenario to create.
-        task (str): The task name within the scenario.
+        scenario (Scenario): The specific Mario world/scenario to create.
+        task (str): The task/level name within the scenario (e.g., 'Level1-1').
         task_idx (int): The index of the task within the scenario.
         scenario_kwargs (Dict[str, any]): Additional kwargs for the scenario.
-        doom_kwargs (Dict[str, any]): Common kwargs for Doom environments.
+        mario_kwargs (Dict[str, any]): Common kwargs for Mario environments.
         wrapper_config (Dict[str, any]): Configuration for environment wrappers.
 
     Returns:
-        DoomEnv: An instance of the Doom environment.
+        MarioEnv: An instance of the Mario environment.
     """
 
     # Retrieve the scenario class and create an instance
     scenario_class = scenario_config[scenario]['class']
     scenario_kwargs = scenario_kwargs or {}
-    doom_kwargs = doom_kwargs or {'env': task, 'task_idx': task_idx, 'action_space_fn': build_multi_discrete_actions}
-    env = scenario_class(doom_kwargs, **scenario_kwargs)
+
+    # Build default mario_kwargs and merge with provided ones
+    default_mario_kwargs = {
+        'env': task,
+        'task_idx': task_idx,
+        'action_space_fn': build_mario_actions
+    }
+
+    # Merge provided mario_kwargs with defaults (provided values take precedence)
+    if mario_kwargs:
+        default_mario_kwargs.update(mario_kwargs)
+    mario_kwargs = default_mario_kwargs
+
+    env = scenario_class(mario_kwargs, **scenario_kwargs)
 
     # Apply wrappers to the environment
     env = wrap_env(env, wrapper_config or default_wrapper_config)
     return env
 
 
-def wrap_env(env: DoomEnv, wrap_conf: Dict[str, any]):
+def wrap_env(env: MarioEnv, wrap_conf: Dict[str, any]):
     """
-    Applies a series of wrappers to the Doom environment based on the provided configuration.
+    Applies a series of wrappers to the Mario environment based on the provided configuration.
 
     Args:
-        env (DoomEnv): The Doom environment to be wrapped.
+        env (MarioEnv): The Mario environment to be wrapped.
         wrap_conf (Dict[str, any]): Configuration dict specifying which wrappers to apply.
 
     Returns:
@@ -137,41 +165,87 @@ def wrap_env(env: DoomEnv, wrap_conf: Dict[str, any]):
     return env
 
 
-def build_discrete_actions():
+def build_mario_actions():
     """
-    Builds a list of discrete actions where each action is represented by a list of four booleans.
-    The actions are:
-        - TURN_LEFT: [True, False, False, False]
-        - TURN_RIGHT: [False, True, False, False]
-        - MOVE_FORWARD: [False, False, True, False]
-        - EXECUTE: [False, False, False, True]
-    :return: List of actions
-    """
-    turn_left = [True, False, False, False]
-    turn_right = [False, True, False, False]
-    move_forward = [False, False, True, False]
-    execute = [False, False, False, True]
+    Builds action space for Super Mario Bros using NES controller buttons.
 
-    return [turn_left, turn_right, move_forward, execute]
+    NES Controller buttons (indices for stable-retro):
+    - Button indices: [B, None, Select, Start, Up, Down, Left, Right, A]
+    - For Mario, we use: [B(run/fire), _, _, _, Up, Down, Left, Right, A(jump)]
 
+    This creates a simplified action space with 12 actions:
+    - Movement: Left, Right, or None
+    - Jump: A button or not
+    - Run/Fire: B button or not
 
-def build_multi_discrete_actions():
-    """
-    Builds a unified multi-discrete action space for all COOM environments.
-    A unified action space simplifies training a single agent on multiple environments.
-    There are 12 possible actions:
-        - Turn left or right
-        - Move forward or not
-        - Execute action or not
-    The execute action depends on the scenario. It is used to press buttons, shoot, jump or accelerate.
-    :return: MultiDiscrete action space
+    Returns:
+        List of action arrays (each is a 9-element boolean array for NES buttons)
     """
     actions = []
-    t_left_right = [[False, False], [False, True], [True, False]]
-    m_forward = [[False], [True]]
-    execute = [[False], [True]]
-    for turn in t_left_right:
-        for move in m_forward:
-            for action in execute:
-                actions.append(turn + move + action)
+
+    # Movement options: Left, Right, None
+    movement_options = [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],  # No movement
+        [0, 0, 0, 0, 0, 0, 1, 0, 0],  # Left
+        [0, 0, 0, 0, 0, 0, 0, 1, 0],  # Right
+    ]
+
+    # Jump options: Jump (A) or not
+    jump_options = [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],  # No jump
+        [0, 0, 0, 0, 0, 0, 0, 0, 1],  # Jump (A button)
+    ]
+
+    # Run/Fire options: Run (B) or not
+    run_options = [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],  # No run
+        [1, 0, 0, 0, 0, 0, 0, 0, 0],  # Run/Fire (B button)
+    ]
+
+    # Combine all options (3 movement × 2 jump × 2 run = 12 actions)
+    for movement in movement_options:
+        for jump in jump_options:
+            for run in run_options:
+                # Combine button presses (OR operation for each button)
+                action = [
+                    max(movement[i], jump[i], run[i])
+                    for i in range(9)
+                ]
+                actions.append(np.array(action, dtype=np.uint8))
+
     return actions
+
+
+def build_simple_mario_actions():
+    """
+    Builds a simplified action space for Super Mario Bros with only essential actions.
+
+    Creates 7 core actions:
+    - NOOP (do nothing)
+    - RIGHT (move right)
+    - RIGHT + A (jump right)
+    - RIGHT + B (run right)
+    - RIGHT + A + B (jump and run right)
+    - LEFT (move left)
+    - A (jump in place)
+
+    Returns:
+        List of action arrays for NES controller
+    """
+    # [B, None, Select, Start, Up, Down, Left, Right, A]
+    actions = [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],  # NOOP
+        [0, 0, 0, 0, 0, 0, 0, 1, 0],  # RIGHT
+        [0, 0, 0, 0, 0, 0, 0, 1, 1],  # RIGHT + A (jump right)
+        [1, 0, 0, 0, 0, 0, 0, 1, 0],  # RIGHT + B (run right)
+        [1, 0, 0, 0, 0, 0, 0, 1, 1],  # RIGHT + B + A (run and jump right)
+        [0, 0, 0, 0, 0, 0, 1, 0, 0],  # LEFT
+        [0, 0, 0, 0, 0, 0, 0, 0, 1],  # A (jump in place)
+    ]
+
+    return [np.array(action, dtype=np.uint8) for action in actions]
+
+
+# Backward compatibility aliases
+build_multi_discrete_actions = build_mario_actions
+build_discrete_actions = build_simple_mario_actions

@@ -1,28 +1,76 @@
 from collections import deque
+from typing import Dict
 
 import numpy as np
 from scipy import spatial
-from vizdoom import ScreenResolution
-
-resolutions = {'800X600': ScreenResolution.RES_800X600,
-               '640X480': ScreenResolution.RES_640X480,
-               '320X240': ScreenResolution.RES_320X240,
-               '160X120': ScreenResolution.RES_160X120}
 
 
-def get_screen_resolution(resolution: str) -> ScreenResolution:
-    if resolution not in resolutions:
-        raise ValueError(f'Invalid resolution: {resolution}')
-    return resolutions[resolution]
+def distance_traversed(game_var_buf: deque, x_var: str, y_var: str) -> float:
+    """
+    Calculate Euclidean distance traveled between first and last state in buffer.
 
+    Args:
+        game_var_buf: Deque of game state dictionaries
+        x_var: Name of x-position variable (e.g., 'xscrollLo')
+        y_var: Name of y-position variable (e.g., 'player_y_pos')
 
-def distance_traversed(game_var_buf: deque, x_index: int, y_index: int) -> float:
-    coordinates_curr = [game_var_buf[-1][x_index],
-                        game_var_buf[-1][y_index]]
-    coordinates_past = [game_var_buf[0][x_index],
-                        game_var_buf[0][y_index]]
+    Returns:
+        Euclidean distance between first and last positions
+    """
+    if len(game_var_buf) < 2:
+        return 0.0
+
+    coordinates_curr = [
+        game_var_buf[-1].get(x_var, 0),
+        game_var_buf[-1].get(y_var, 0)
+    ]
+    coordinates_past = [
+        game_var_buf[0].get(x_var, 0),
+        game_var_buf[0].get(y_var, 0)
+    ]
     return spatial.distance.euclidean(coordinates_curr, coordinates_past)
 
 
+def get_x_position(state: Dict) -> int:
+    """
+    Get full x-position from Mario game state by combining Hi and Lo bytes.
+
+    Args:
+        state: Game state dictionary
+
+    Returns:
+        Full x-position as integer
+    """
+    x_hi = state.get('xscrollHi', 0)
+    x_lo = state.get('xscrollLo', 0)
+    return int(x_hi * 256 + x_lo)
+
+
+def get_player_position(state: Dict) -> tuple:
+    """
+    Get player (x, y) position from Mario game state.
+
+    Args:
+        state: Game state dictionary
+
+    Returns:
+        Tuple of (x, y) positions
+    """
+    x_hi = state.get('player_x_posHi', 0)
+    x_lo = state.get('player_x_posLo', 0)
+    x = int(x_hi * 256 + x_lo)
+    y = int(state.get('player_y_pos', 0))
+    return (x, y)
+
+
 def combine_frames(obs):
+    """
+    Combine multiple frame observations along the channel dimension.
+
+    Args:
+        obs: List or array of observation frames
+
+    Returns:
+        Concatenated observation
+    """
     return np.concatenate(obs, axis=2)

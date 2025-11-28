@@ -1,13 +1,13 @@
 from enum import Enum
 
-from COOM.env.scenarios.arms_dealer.arms_dealer import ArmsDealer
-from COOM.env.scenarios.chainsaw.chainsaw import Chainsaw
-from COOM.env.scenarios.floor_is_lava.floor_is_lava import FloorIsLava
-from COOM.env.scenarios.health_gathering.health_gathering import HealthGathering
-from COOM.env.scenarios.hide_and_seek.hide_and_seek import HideAndSeek
-from COOM.env.scenarios.pitfall.pitfall import Pitfall
-from COOM.env.scenarios.raise_the_roof.raise_the_roof import RaiseTheRoof
-from COOM.env.scenarios.run_and_gun.run_and_gun import RunAndGun
+from COOM.env.scenarios.world1.world1 import World1
+from COOM.env.scenarios.world2.world2 import World2
+from COOM.env.scenarios.world3.world3 import World3
+from COOM.env.scenarios.world4.world4 import World4
+from COOM.env.scenarios.world5.world5 import World5
+from COOM.env.scenarios.world6.world6 import World6
+from COOM.env.scenarios.world7.world7 import World7
+from COOM.env.scenarios.world8.world8 import World8
 from COOM.utils.augmentations import random_conv, random_shift, random_noise
 
 
@@ -18,92 +18,149 @@ class Augmentation(Enum):
 
 
 class Sequence(Enum):
-    CD4 = 1
-    CD8 = 2
-    CO4 = 3
-    CO8 = 4
-    CD16 = 5
-    CO16 = 6
-    COC = 7
-    MIXED = 8
+    """
+    Continual Learning sequences for Super Mario Bros.
+
+    - WORLD_PROGRESSION_4: Progress through first 4 worlds (1-4), one stage per world
+    - WORLD_PROGRESSION_8: Progress through all 8 worlds (1-8), one stage per world
+    - STAGE_TYPES_4: Experience all 4 stage types across different worlds
+    - WORLD_COMPLETE: Complete all 4 stages of 2 worlds
+    - DIFFICULTY_CURVE: Ordered by difficulty (easy to hard levels)
+    - MIXED_WORLDS: Interleaved worlds and stages
+    """
+    WORLD_PROGRESSION_4 = 1
+    WORLD_PROGRESSION_8 = 2
+    STAGE_TYPES_4 = 3
+    WORLD_COMPLETE = 4
+    DIFFICULTY_CURVE = 5
+    MIXED_WORLDS = 6
 
 
 class Scenario(Enum):
-    PITFALL = 1
-    ARMS_DEALER = 2
-    FLOOR_IS_LAVA = 3
-    HIDE_AND_SEEK = 4
-    CHAINSAW = 5
-    RAISE_THE_ROOF = 6
-    RUN_AND_GUN = 7
-    HEALTH_GATHERING = 8
+    """
+    The 8 worlds of Super Mario Bros.
+    Each world contains 4 stages (levels).
+    """
+    WORLD1 = 1
+    WORLD2 = 2
+    WORLD3 = 3
+    WORLD4 = 4
+    WORLD5 = 5
+    WORLD6 = 6
+    WORLD7 = 7
+    WORLD8 = 8
 
 
+# Configuration for each scenario (world)
 scenario_config = {
-    Scenario.PITFALL: {
-        'class': Pitfall,
-        'args': ['reward_platform_reached', 'reward_scaler_pitfall', 'penalty_death']
+    Scenario.WORLD1: {
+        'class': World1,
+        'args': ['reward_position', 'penalty_time', 'reward_coin']
     },
-    Scenario.ARMS_DEALER: {
-        'class': ArmsDealer,
-        'args': ['reward_scaler_traversal', 'reward_weapon_ad', 'reward_delivery', 'penalty_passivity']
+    Scenario.WORLD2: {
+        'class': World2,
+        'args': ['reward_position', 'penalty_time', 'reward_coin']
     },
-    Scenario.FLOOR_IS_LAVA: {
-        'class': FloorIsLava,
-        'args': ['reward_scaler_traversal', 'reward_on_platform', 'reward_platform_reached',
-                 'reward_frame_survived', 'penalty_lava']
+    Scenario.WORLD3: {
+        'class': World3,
+        'args': ['reward_position', 'penalty_time', 'reward_coin']
     },
-    Scenario.HIDE_AND_SEEK: {
-        'class': HideAndSeek,
-        'args': ['reward_scaler_traversal', 'reward_health_has', 'reward_frame_survived',
-                 'penalty_health_has']
+    Scenario.WORLD4: {
+        'class': World4,
+        'args': ['reward_position', 'penalty_time', 'reward_coin']
     },
-    Scenario.CHAINSAW: {
-        'class': Chainsaw,
-        'args': ['reward_scaler_traversal', 'reward_kill_chain']
+    Scenario.WORLD5: {
+        'class': World5,
+        'args': ['reward_position', 'penalty_time', 'reward_coin']
     },
-    Scenario.RAISE_THE_ROOF: {
-        'class': RaiseTheRoof,
-        'args': ['reward_scaler_traversal', 'reward_frame_survived', 'reward_switch_pressed']
+    Scenario.WORLD6: {
+        'class': World6,
+        'args': ['reward_position', 'penalty_time', 'reward_coin']
     },
-    Scenario.RUN_AND_GUN: {
-        'class': RunAndGun,
-        'args': ['reward_scaler_traversal', 'reward_kill_rag']
+    Scenario.WORLD7: {
+        'class': World7,
+        'args': ['reward_position', 'penalty_time', 'reward_coin']
     },
-    Scenario.HEALTH_GATHERING: {
-        'class': HealthGathering,
-        'args': ['reward_frame_survived', 'reward_health_hg', 'penalty_health_hg']
+    Scenario.WORLD8: {
+        'class': World8,
+        'args': ['reward_position', 'penalty_time', 'reward_coin']
     },
 }
 
-CD_scenarios = [Scenario.RUN_AND_GUN]
-CO_scenarios = [Scenario.PITFALL, Scenario.ARMS_DEALER, Scenario.HIDE_AND_SEEK, Scenario.FLOOR_IS_LAVA,
-                Scenario.CHAINSAW, Scenario.RAISE_THE_ROOF, Scenario.RUN_AND_GUN,
-                Scenario.HEALTH_GATHERING]
-CD_tasks = ['obstacles', 'green', 'resized', 'monsters', 'default', 'red', 'blue', 'shadows']
-CO_tasks = ['default']
-COC_tasks = ['hard']
+# All worlds for easy reference
+ALL_WORLDS = [Scenario.WORLD1, Scenario.WORLD2, Scenario.WORLD3, Scenario.WORLD4,
+              Scenario.WORLD5, Scenario.WORLD6, Scenario.WORLD7, Scenario.WORLD8]
+
+# Stage/level names for each world
+# Each world has 4 stages: Level{W}-{S} where W=world (1-8), S=stage (1-4)
+STAGE_1_LEVELS = ['Level1-1', 'Level2-1', 'Level3-1', 'Level4-1',
+                  'Level5-1', 'Level6-1', 'Level7-1', 'Level8-1']
+STAGE_2_LEVELS = ['Level1-2', 'Level2-2', 'Level3-2', 'Level4-2',
+                  'Level5-2', 'Level6-2', 'Level7-2', 'Level8-2']
+STAGE_3_LEVELS = ['Level1-3', 'Level2-3', 'Level3-3', 'Level4-3',
+                  'Level5-3', 'Level6-3', 'Level7-3', 'Level8-3']
+STAGE_4_LEVELS = ['Level1-4', 'Level2-4', 'Level3-4', 'Level4-4',
+                  'Level5-4', 'Level6-4', 'Level7-4', 'Level8-4']
+
+# All stages for a given world
+WORLD_STAGES = {
+    Scenario.WORLD1: ['Level1-1', 'Level1-2', 'Level1-3', 'Level1-4'],
+    Scenario.WORLD2: ['Level2-1', 'Level2-2', 'Level2-3', 'Level2-4'],
+    Scenario.WORLD3: ['Level3-1', 'Level3-2', 'Level3-3', 'Level3-4'],
+    Scenario.WORLD4: ['Level4-1', 'Level4-2', 'Level4-3', 'Level4-4'],
+    Scenario.WORLD5: ['Level5-1', 'Level5-2', 'Level5-3', 'Level5-4'],
+    Scenario.WORLD6: ['Level6-1', 'Level6-2', 'Level6-3', 'Level6-4'],
+    Scenario.WORLD7: ['Level7-1', 'Level7-2', 'Level7-3', 'Level7-4'],
+    Scenario.WORLD8: ['Level8-1', 'Level8-2', 'Level8-3', 'Level8-4'],
+}
+
+# Sequence definitions
+# Map each sequence type to its list of scenarios and tasks
 
 sequence_scenarios = {
-    Sequence.CD4: CD_scenarios,
-    Sequence.CO4: CO_scenarios[4:],
-    Sequence.CD8: CD_scenarios,
-    Sequence.CO8: CO_scenarios,
-    Sequence.CD16: CD_scenarios,
-    Sequence.CO16: CO_scenarios + CO_scenarios,
-    Sequence.COC: CO_scenarios,
-    Sequence.MIXED: [item for pair in zip(CD_scenarios * len(CO_scenarios), CO_scenarios) for item in pair]
+    # Progress through worlds 1-4, using first stage of each
+    Sequence.WORLD_PROGRESSION_4: [Scenario.WORLD1, Scenario.WORLD2, Scenario.WORLD3, Scenario.WORLD4],
+
+    # Progress through all 8 worlds, using first stage of each
+    Sequence.WORLD_PROGRESSION_8: ALL_WORLDS,
+
+    # Experience all 4 stage types (X-1, X-2, X-3, X-4) using different worlds
+    Sequence.STAGE_TYPES_4: [Scenario.WORLD1, Scenario.WORLD2, Scenario.WORLD3, Scenario.WORLD4],
+
+    # Complete all stages of World 1 and World 4 (2 complete worlds)
+    Sequence.WORLD_COMPLETE: [Scenario.WORLD1, Scenario.WORLD1, Scenario.WORLD1, Scenario.WORLD1,
+                              Scenario.WORLD4, Scenario.WORLD4, Scenario.WORLD4, Scenario.WORLD4],
+
+    # Difficulty progression: easier levels first, harder later
+    Sequence.DIFFICULTY_CURVE: [Scenario.WORLD1, Scenario.WORLD2, Scenario.WORLD3, Scenario.WORLD4,
+                                Scenario.WORLD5, Scenario.WORLD6, Scenario.WORLD7, Scenario.WORLD8],
+
+    # Mixed: alternate between different worlds and stages
+    Sequence.MIXED_WORLDS: [Scenario.WORLD1, Scenario.WORLD3, Scenario.WORLD5, Scenario.WORLD7,
+                            Scenario.WORLD2, Scenario.WORLD4, Scenario.WORLD6, Scenario.WORLD8],
 }
 
 sequence_tasks = {
-    Sequence.CD4: CD_tasks[4:],
-    Sequence.CO4: CO_tasks,
-    Sequence.CD8: CD_tasks,
-    Sequence.CO8: CO_tasks,
-    Sequence.CD16: CD_tasks + CD_tasks,
-    Sequence.CO16: CO_tasks,
-    Sequence.COC: COC_tasks,
-    Sequence.MIXED: [item for pair in zip(CD_tasks, CO_tasks * len(CD_tasks)) for item in pair]
+    # World progression: use stage 1 of each world
+    Sequence.WORLD_PROGRESSION_4: ['Level1-1', 'Level2-1', 'Level3-1', 'Level4-1'],
+
+    # All 8 worlds, stage 1 each
+    Sequence.WORLD_PROGRESSION_8: STAGE_1_LEVELS,
+
+    # Experience different stage types: 1-1, 2-2, 3-3, 4-4
+    Sequence.STAGE_TYPES_4: ['Level1-1', 'Level2-2', 'Level3-3', 'Level4-4'],
+
+    # Complete World 1 and World 4 fully
+    Sequence.WORLD_COMPLETE: ['Level1-1', 'Level1-2', 'Level1-3', 'Level1-4',
+                              'Level4-1', 'Level4-2', 'Level4-3', 'Level4-4'],
+
+    # Difficulty curve: progress through stages with increasing difficulty
+    Sequence.DIFFICULTY_CURVE: ['Level1-1', 'Level2-1', 'Level3-1', 'Level4-1',
+                                'Level5-1', 'Level6-1', 'Level7-1', 'Level8-1'],
+
+    # Mixed worlds: alternate stage types
+    Sequence.MIXED_WORLDS: ['Level1-1', 'Level3-2', 'Level5-3', 'Level7-4',
+                            'Level2-1', 'Level4-2', 'Level6-3', 'Level8-4'],
 }
 
 

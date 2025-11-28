@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 # Required dependencies
 coom_requirements = [
-    "vizdoom",
+    "stable-retro",
     "opencv-python",
     "scipy==1.11.4",
     "gymnasium==0.28.1"
@@ -24,13 +24,13 @@ results_processing_requirements = [
 
 setup(
     name="COOM",
-    description="COOM: Benchmarking Continual Reinforcement Learning on Doom",
-    version='1.0.1',
+    description="COOM: Benchmarking Continual Reinforcement Learning on Super Mario Bros",
+    version='2.0.0',
     url='https://github.com/TTomilin/COOM',
     author='Tristan Tomilin',
     author_email='tristan.tomilin@hotmail.com',
     license='MIT',
-    keywords=["continual learning", "vizdoom", "reinforcement learning", "benchmarking"],
+    keywords=["continual learning", "super mario bros", "stable-retro", "reinforcement learning", "benchmarking"],
     packages=find_packages(),
     include_package_data=True,
     install_requires=coom_requirements,

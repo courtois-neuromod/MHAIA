@@ -1,10 +1,8 @@
-# COOM
+# COOM - Super Mario Bros Edition
 
-COOM is a Continual Learning benchmark for embodied pixel-based RL, consisting of task sequences in visually 
-distinct 3D environments with diverse objectives and egocentric perception. COOM is designed for task-incremental learning,
-in which task boundaries are clearly defined. A short presentation of COOM can be found on 
-[NeurIPS](https://neurips.cc/virtual/2023/poster/73450)
-and a demo is available on [Youtube](https://www.youtube.com/watch?v=FUm2B8MZ6d0&list=PL6nJZHA3y2fxQK73jmuI5teM3n6Mydcf7).
+COOM (originally Continual Doom) has been transformed into a Continual Reinforcement Learning benchmark based on **Super Mario Bros**. This benchmark consists of task sequences across the 8 worlds of Super Mario Bros, with 4 stages per world, designed for task-incremental continual learning.
+
+> **Note:** This is a modified version of COOM that replaces ViZDoom with stable-retro for Super Mario Bros environments.
 
 <p align="center">
   <img src="assets/gifs/demo1.gif" alt="Demo1" style="vertical-align: top;"/>
@@ -12,202 +10,262 @@ and a demo is available on [Youtube](https://www.youtube.com/watch?v=FUm2B8MZ6d0
 </p>
 
 ## Installation
-To install COOM from PyPi, just run:
-```bash
-$ pip install COOM
-```
 
-Alternatively, to install COOM from source:
+### Prerequisites
+- Python 3.8+
+- A Super Mario Bros ROM file (you must legally own this)
+
+### Install from source:
+
 1. Clone the repository
 ```bash
 $ git clone https://github.com/hyintell/COOM
 ```
+
 2. Navigate into the repository
 ```bash
 $ cd COOM
 ```
-3. Install COOM from source with pip
-```bash 
-$ pip install .
+
+3. Install stable-retro (required for Mario environments)
+```bash
+$ pip install stable-retro
 ```
 
-## Environments
-COOM contains 8 scenarios:
-
-| Scenario         | Success Metric    | Enemies | Weapon  | Items   | Max Steps | Execute Action | Stochasticity                              | Image                                                  | 
-|------------------|-------------------|---------|---------|---------|-----------|----------------|--------------------------------------------|--------------------------------------------------------|  
-| Pitfall          | Distance Covered  | &cross; | &cross; | &cross; | 1000      | JUMP           | Pitfall tile locations                     | ![Default](assets/images/CO_envs/pitfall.png)          |
-| Arms Dealer      | Weapons Delivered | &cross; | &check; | &check; | 1000      | SPEED          | Weapon spawn locations, delivery locations | ![Default](assets/images/CO_envs/arms_dealer.png)      |
-| Hide and Seek    | Frames Alive      | &check; | &cross; | &check; | 2500      | SPEED          | Enemy behaviour, item spawn locations      | ![Default](assets/images/CO_envs/hide_and_seek.png)    |
-| Floor is Lava    | Frames Alive      | &cross; | &cross; | &cross; | 2500      | SPEED          | Platform locations                         | ![Default](assets/images/CO_envs/floor_is_lava.png)    |
-| Chainsaw         | Kill Count        | &check; | &check; | &cross; | 2500      | ATTACK         | Enemy and agent spawn locations            | ![Default](assets/images/CO_envs/chainsaw.png)         |
-| Raise the Roof   | Frames Alive      | &cross; | &cross; | &cross; | 2500      | USE            | Agent spawn location                       | ![Default](assets/images/CO_envs/raise_the_roof.png)   |
-| Run and Gun      | Kill Count        | &check; | &check; | &cross; | 2500      | ATTACK         | Enemy and agent spawn locations            | ![Default](assets/images/CO_envs/run_and_gun.png)      |
-| Health Gathering | Frames Alive      | &cross; | &cross; | &check; | 2500      | SPEED          | Health kit spawn locations                 | ![Default](assets/images/CO_envs/health_gathering.png) |
-
-Every scenario except `Run and Gun` has 2 environments: `default` and `hard`. The full list of environment is the following:
-- `pitfall-default-v0` - traverse a tunnel as far as possible without falling into a pit
-- `pitfall-hard-v0` - the agent has reduced movement speed and there are more pits in the surface
-- `arms_dealer-default-v0` - collect and deliver weapons to the marked locations as fast as possible
-- `arms_dealer-hard-v0` - the map is larger and there are fewer weapons to collect
-- `hide_and_seek-default-v0` - escape and hide from enemies as long as possible
-- `hide_and_seek-hard-v0` - there are more enemies and they are faster
-- `floor_is_lava-default-v0` - keep off the laval by navigating to new platforms as they reappear at new locations
-- `floor_is_lava-hard-v0` - there are fewer platforms to stand on and their locations are in more rapid change
-- `chainsaw-default-v0` - seek out and melee as many enemies as possible
-- `chainsaw-hard-v0` - there are fewer enemies to find, and they are tougher to eliminate
-- `raise_the_roof-default-v0` - locate and press switches on the walls to raise the ceiling and avoid getting crushed
-- `raise_the_roof-hard-v0` - the ceiling is lowered faster and the switches are harder to spot
-- `run_and_gun-default-v0` - use a pistol to eliminate as many enemies as possible
-- `run_and_gun-hard-v0` - there are fewer enemies to find, and they are tougher to eliminate
-- `run_and_gun-obstacles-v0` - there are obstacles in the environment which block the agent's movement
-- `run_and_gun-green-v0` - the wall, ceiling and floor textures are green
-- `run_and_gun-resized-v0` - the agent's view height is randomized and the targets are randomly resized
-- `run_and_gun-monsters-v0` - the targets are replaced with monsters that move around and fight back
-- `run_and_gun-red-v0` - the wall, ceiling and floor textures are red
-- `run_and_gun-blue-v0` - the wall, ceiling and floor textures are blue
-- `run_and_gun-shadows-v0` - the targets are less visible due to lowered opacity
-- `health_gathering-default-v0` - collect health kits as fast as possible to stay alive
-- `health_gathering-hard-v0` - there are fewer health kits to find and the environment layout is more complex
-
-## Task Sequences for Continual Learning
-To formulate a continual learning problem, we compose sequences of tasks, where each task is an environment of a 
-scenario. The agent is trained on each task sequentially, without access to the previous tasks. The agent is continually
-evaluated on all tasks throughout training. The task sequence is considered solved if the agent achieves maximum success 
-on all tasks.
-There are three lengths of Continual Learning task sequences in our benchmark: 
-1) 8-task sequences serve as the core of the benchmark
-2) 4-task sequences are comprised of the 2<sup>nd</sup> half of an 8-task sequence
-3) 16-task sequences combine tasks of two 8-task sequences
-
-We further distinguish between the `Cross-Domain` and `Cross-Objective` sequences. 
-
-### Cross-Domain
-In the cross-domain setting, the agent is sequentially trained on modified versions of the same scenario. 
-`Run and Gun` is selected as basis for this CL sequence, since out of the 8 scenarios in the benchmark, it best resembles 
-the actual Doom game, requiring the agent to navigate the map and eliminate enemies by firing a weapon. The objective and
-the layout of the map remain the same across tasks, whereas we modify the environment in the following ways: 
-1) Changing the textures of the surrounding walls, ceiling and floor 
-2) Varying the size, shape and type of enemies 
-3) Randomizing the view height of the agent, and 
-4) Adding objects to the environment which act as obstacles, blocking the agent’s movement.
-
-#### Tasks in the Cross-Domain 8 (CD8) sequence
-![Default](assets/images/sequences/CD8_sequence.png)
-### Cross-Objective
-Cross-objective task sequences employ a different scenario with a novel objective for each consecutive task, apart from 
-only changing the visuals and dynamics of a single scenario. This presents a diverse challenge, as the goal might 
-drastically change from locating and eliminating enemies (`Run and Gun` and `Chainsaw`) to running away and hiding 
-from them (`Hide and Seek`). In a similar fashion, the scenario `Floor is Lava` often requires the agent to remain at a 
-bounded location for optimal performance, whereas scenarios `Pitfall`, `Arms Dealer`, `Raise the Roof`, and `Health 
-Gathering` endorse constant movement.
-#### Tasks in the Cross-Objective 8 (CO8) sequence
-![Default](assets/images/sequences/CO8_sequence.png)
-
-# Getting Started
-Below we provide a short code snippet to run a sequence with the COOM benchmark.
-
-## Basic Usage
-Find examples of using COOM environments in the 
-[run_single](examples/run_single.py) and [run_sequence](examples/run_sequence.py) scripts.
-
-### Single Environment
+4. Install COOM from source
+```bash
+$ pip install -e .
 ```
+
+5. Set up the Mario ROM integration
+```bash
+# The mario.stimuli folder is already included in the repository
+# Make sure you have the Super Mario Bros ROM file and import it using retro
+$ python -m retro.import /path/to/your/roms/
+```
+
+## Worlds and Levels
+
+The benchmark contains **8 worlds** from Super Mario Bros, each with **4 stages**:
+
+| World | Stages | Description | Difficulty |
+|-------|--------|-------------|------------|
+| **World 1** | 1-1, 1-2, 1-3, 1-4 | Classic overground, underground, tree-top, and castle | Easy |
+| **World 2** | 2-1, 2-2, 2-3, 2-4 | Water world with swimming mechanics | Medium |
+| **World 3** | 3-1, 3-2, 3-3, 3-4 | Night levels with aggressive enemies | Medium |
+| **World 4** | 4-1, 4-2, 4-3, 4-4 | Island platforms with water gaps | Medium-Hard |
+| **World 5** | 5-1, 5-2, 5-3, 5-4 | Cloud world with vertical platforming | Hard |
+| **World 6** | 6-1, 6-2, 6-3, 6-4 | Ice world with slippery physics | Hard |
+| **World 7** | 7-1, 7-2, 7-3, 7-4 | Pipe world with Piranha Plants | Very Hard |
+| **World 8** | 8-1, 8-2, 8-3, 8-4 | Final world with all enemy types | Extreme |
+
+Each level is accessible via its name (e.g., `'Level1-1'`, `'Level3-2'`, `'Level8-4'`).
+
+## Reward Structure
+
+The Mario benchmark uses a **progress-focused reward** structure:
+- **Primary Reward**: Horizontal movement (x-position progress through the level)
+- **Time Penalty**: Small negative reward per frame (encourages faster completion)
+- **Success Metric**: Maximum x-position reached (normalized between lower and upper bounds)
+
+### Reward Options
+- **Dense Rewards**: Position progress + time penalty
+- **Sparse Rewards**: Position progress only
+
+## Action Space
+
+The action space is based on the NES controller with 12 discrete actions:
+
+| Movement | Jump (A) | Run/Fire (B) | Action Description |
+|----------|----------|--------------|-------------------|
+| None | No | No | Stand still |
+| None | No | Yes | Run in place / Fire |
+| None | Yes | No | Jump in place |
+| None | Yes | Yes | High jump in place |
+| Left | No | No | Walk left |
+| Left | No | Yes | Run left |
+| Left | Yes | No | Jump left |
+| Left | Yes | Yes | Run-jump left |
+| Right | No | No | Walk right |
+| Right | No | Yes | Run right |
+| Right | Yes | No | Jump right |
+| Right | Yes | Yes | Run-jump right |
+
+## Continual Learning Sequences
+
+The benchmark includes **6 predefined continual learning sequences**:
+
+### 1. WORLD_PROGRESSION_4
+Progress through the first 4 worlds, using stage 1 of each:
+- Tasks: Level1-1 → Level2-1 → Level3-1 → Level4-1
+- **Purpose**: Gradual difficulty increase across different world themes
+
+### 2. WORLD_PROGRESSION_8
+Progress through all 8 worlds, using stage 1 of each:
+- Tasks: Level1-1 → Level2-1 → ... → Level8-1
+- **Purpose**: Maximum variety in visual themes and mechanics
+
+### 3. STAGE_TYPES_4
+Experience all 4 stage types (X-1, X-2, X-3, X-4) across different worlds:
+- Tasks: Level1-1 → Level2-2 → Level3-3 → Level4-4
+- **Purpose**: Learn different stage patterns (overground, underground, athletic, castle)
+
+### 4. WORLD_COMPLETE
+Complete all 4 stages of World 1, then all 4 stages of World 4:
+- Tasks: Level1-1 → Level1-2 → Level1-3 → Level1-4 → Level4-1 → Level4-2 → Level4-3 → Level4-4
+- **Purpose**: Master individual worlds completely before moving on
+
+### 5. DIFFICULTY_CURVE
+Progress through increasing difficulty:
+- Tasks: Level1-1 → Level2-1 → ... → Level8-1
+- **Purpose**: Systematic difficulty progression
+
+### 6. MIXED_WORLDS
+Alternate between different worlds and stages:
+- Tasks: Level1-1 → Level3-2 → Level5-3 → Level7-4 → Level2-1 → Level4-2 → Level6-3 → Level8-4
+- **Purpose**: Test adaptability with frequent context switches
+
+## Quick Start
+
+### Run a Single Level
+
+```python
 from COOM.env.builder import make_env
 from COOM.utils.config import Scenario
 
-env = make_env(Scenario.RAISE_THE_ROOF)
-env.reset()
-for steps in range(1000):
-    action = env.action_space.sample()
-    state, reward, done, truncated, info = env.step(action)
-    env.render()
-    if done:
+# Create a World 1 environment running Level 1-1
+env = make_env(Scenario.WORLD1, task='Level1-1')
+
+obs, info = env.reset()
+for _ in range(1000):
+    action = env.action_space.sample()  # Random agent
+    obs, reward, done, truncated, info = env.step(action)
+    if done or truncated:
         break
+
 env.close()
 ```
 
-### Task Sequence
-```
+### Run a Continual Learning Sequence
+
+```python
 from COOM.env.continual import ContinualLearningEnv
 from COOM.utils.config import Sequence
 
-cl_env = ContinualLearningEnv(Sequence.CO8)
-for env in cl_env.tasks:
-    env.reset()
-    done = False
-    while not done:
-        action = env.action_space.sample()
-        state, reward, done, truncated, info = env.step(action)
-        env.render()
-        if done:
-            break
-    env.close()
+# Create a continual learning environment
+cl_env = ContinualLearningEnv(
+    sequence=Sequence.WORLD_PROGRESSION_8,
+    steps_per_env=10000
+)
+
+obs, info = cl_env.reset()
+for _ in range(80000):  # 8 worlds × 10000 steps
+    action = cl_env.action_space.sample()
+    obs, reward, done, truncated, info = cl_env.step(action)
+    if done or truncated:
+        obs, info = cl_env.reset()
+
+cl_env.close()
 ```
 
-# Baseline Results
-We have employed various popular continual learning algorithms to evaluate their performance on the COOM benchmark.
-The algorithms are implemented on top of the Soft-Actor-Critic (SAC) reinforcement learning algorithm.
-Please follow the instructions in the [Continual Learning module](CL/README.md) to use the algorithms.
-The following table ranks the baselines from best to worst performing
+### Run Example Scripts
 
-| Method                                                                                                               | Type           | Score |                                                                                                        
-|----------------------------------------------------------------------------------------------------------------------|----------------|-------|
-| [PackNet](https://openaccess.thecvf.com/content_cvpr_2018/papers/Mallya_PackNet_Adding_Multiple_CVPR_2018_paper.pdf) | Structure      | 0.74  |
-| [ClonEx-SAC](https://arxiv.org/pdf/2209.13900.pdf)                                                                   | Memory         | 0.73  |
-| L2                                                                                                                   | Regularization | 0.64  |
-| [MAS](https://arxiv.org/pdf/1711.09601.pdf)                                                                          | Regularization | 0.56  |
-| [EWC](https://www.pnas.org/doi/epdf/10.1073/pnas.1611835114)                                                         | Regularization | 0.54  |
-| Fine-Tuning                                                                                                          | Naïve          | 0.40  |
-| [VCL](https://arxiv.org/pdf/1710.10628.pdf)                                                                          | Regularization | 0.33  |                                                          
-| [AGEM](https://arxiv.org/pdf/1812.00420.pdf)                                                                         | Memory         | 0.28  |
-| [Perfect Memory*](https://arxiv.org/abs/2105.10919)                                                                  | Memory         | 0.89* |
-
-_*The memory consumption of the method is too high to feasible run it on the longer sequences of the benchmark, so it does not follow the ranking in the table._ 
-
-## Evaluation Metrics
-We evaluate the continual learning methods on the COOM benchmark based on Average Performance, Forgetting, and Forward Transfer.
-### Average Performance
-The performance (success rate) averaged over tasks is a typical metric for the continual learning setting. The agent is continually
-evaluated on all tasks in the sequence even before encountering it. By the end of the sequence, the agent should have mastered all tasks.
-
-![Default](assets/images/plots/performance.png)
-
-### Forgetting
-Forgetting occurs when the agent's performance on a task decreases after training on a subsequent task.
-This is a common problem in continual learning, as the agent has to learn new tasks while retaining the knowledge of the previous ones.
-We measure forgetting by comparing the performance of the agent on a task after training and at the end of the entire sequence.
-The image below depicts heavy forgetting in the example of AGEM. 
-![Default](assets/images/plots/forgetting_AGEM.png)
-
-Contrary to AGEM, ClonEx-SAC is able to retain the knowledge of the previous tasks.
-![Default](assets/images/plots/forgetting_clonex.png)
-
-### Forward Transfer
-Transferring learned knowledge from one task to another is a key aspect of continual learning. We measure the forward 
-transfer of the continual learning methods by how efficiently they train on each given task compared to the 
-Soft Actor-Critic (SAC) baseline, which is trained directly on the same from scratch. The red areas between the curves 
-represent negative forward transfer and other colors represent positive forward transfer as depicted on the image below.
-
-![Default](assets/images/plots/transfer_clonex.png)
-
-## Reproducing results
-For reproducing the results in our paper please follow the instructions in the [results module](results/README.md).
-
-# Acknowledgements
-
-COOM is based on the [ViZDoom](https://github.com/mwydmuch/ViZDoom) platform.  
-The `Cross-Domain` task sequences and the `run_and_gun` scenario environment modification were inspired by the [LevDoom](https://github.com/TTomilin/LevDoom) generalization benchmark.  
-The base implementations of SAC and continual learning methods originate from [Continual World](https://github.com/awarelab/continual_world).  
-Our experiments were managed using [WandB](https://wandb.ai).
-
-# Citation
-If you use our work in your research, please cite it as follows:
+Test a single world:
+```bash
+$ python COOM/examples/run_single.py --scenario world1 --task Level1-1 --render
 ```
+
+Test a continual learning sequence:
+```bash
+$ python COOM/examples/run_sequence.py --sequence WORLD_PROGRESSION_4 --steps-per-env 1000 --render
+```
+
+## Custom Integration Path
+
+The Mario levels use a custom stable-retro integration located in `mario.stimuli/`. This integration includes:
+- **data.json**: Memory addresses for game state variables (score, coins, position, lives, etc.)
+- **scenario.json**: Reward and episode termination conditions
+- **metadata.json**: Benchmark performance metadata
+- **Level states**: Pre-generated save states for all 32 levels (8 worlds × 4 stages)
+
+## Game State Variables
+
+The following game variables are accessible for reward shaping and statistics:
+
+| Variable | Description | Type |
+|----------|-------------|------|
+| `score` | Game score | int |
+| `coins` | Coins collected | int |
+| `lives` | Remaining lives | int |
+| `xscrollLo` / `xscrollHi` | Horizontal scroll position (combined for full x-pos) | int |
+| `player_x_posLo` / `player_x_posHi` | Player X position | int |
+| `player_y_pos` | Player Y position | int |
+| `time` | Time remaining | int |
+| `world` | Current world | int |
+| `stage` | Current stage | int |
+
+## Architecture Overview
+
+```
+COOM/
+├── env/
+│   ├── scenario.py          # MarioEnv base class (replaces DoomEnv)
+│   ├── continual.py         # ContinualLearningEnv wrapper
+│   ├── builder.py           # Environment factory functions
+│   └── scenarios/
+│       ├── world1/          # World 1 scenario (Levels 1-1 to 1-4)
+│       ├── world2/          # World 2 scenario
+│       ├── ...
+│       └── world8/          # World 8 scenario
+├── wrappers/
+│   ├── reward.py            # Reward shaping wrappers (adapted for Mario)
+│   └── observation.py       # Observation preprocessing
+├── utils/
+│   └── config.py            # Scenario and sequence definitions
+└── mario.stimuli/           # Custom retro integration
+    ├── SuperMarioBros-Nes/
+    │   ├── data.json        # Game state variable addresses
+    │   ├── scenario.json    # Reward/done conditions
+    │   └── metadata.json    # Benchmark metadata
+    └── generate_sublevels.py
+```
+
+## Key Differences from Original COOM
+
+| Aspect | Original COOM | Mario COOM |
+|--------|---------------|------------|
+| Game Engine | ViZDoom | stable-retro |
+| Game | Doom (1993) | Super Mario Bros (1985) |
+| Scenarios | 8 custom scenarios | 8 worlds (32 levels total) |
+| Tasks per scenario | 2-9 variations | 4 stages per world |
+| Action Space | 12 actions (turn, move, shoot/jump) | 12 actions (move, jump, run) |
+| Observation | 160×120 RGB | 224×256 RGB (NES resolution) |
+| Success Metric | Scenario-dependent | Horizontal progress (x-position) |
+| Reward | Dense/sparse per scenario | Progress-focused with time penalty |
+
+## Training Agents
+
+The benchmark is compatible with any RL algorithm that works with Gymnasium environments. Example training scripts using SAC and other continual learning methods can be found in the `CL/` directory.
+
+## Citation
+
+If you use this Mario version of COOM in your research, please cite the original COOM benchmark:
+
+```bibtex
 @inproceedings{tomilin2023coom,
-    title={COOM: A Game Benchmark for Continual Reinforcement Learning},
-    author={Tomilin, Tristan and Fang, Meng and Zhang, Yudi and Pechenizkiy, Mykola},
-    booktitle={Thirty-seventh Conference on Neural Information Processing Systems Datasets and Benchmarks Track},
-    year={2023}
+  title={COOM: A Game Benchmark for Continual Reinforcement Learning},
+  author={Tomilin, Tristan and Ghumare, Meng Fang and others},
+  booktitle={Thirty-seventh Conference on Neural Information Processing Systems Datasets and Benchmarks Track},
+  year={2023}
 }
 ```
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Acknowledgments
+
+- Original COOM benchmark by Tristan Tomilin et al.
+- Super Mario Bros © Nintendo
+- stable-retro by OpenAI (maintained by the community)

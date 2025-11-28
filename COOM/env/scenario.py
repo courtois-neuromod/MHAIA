@@ -1,67 +1,65 @@
 from collections import deque
 from pathlib import Path
 from typing import Dict, Tuple, Any, List, Optional, Callable
+import os
 
 import cv2
 import gymnasium
 import numpy as np
-import vizdoom as vzd
-from vizdoom import ScreenResolution, GameVariable
+import retro
 
 from COOM.env.base import BaseEnv
-from COOM.utils.utils import get_screen_resolution
 
 
-class DoomEnv(BaseEnv):
+class MarioEnv(BaseEnv):
     """
-    A foundational class for creating Doom-based environments in the context of reinforcement learning.
+    A foundational class for creating Super Mario Bros-based environments for reinforcement learning.
 
-    This class manages the core functionality required for Doom-based environments,
-    including game initialization, state management, and rendering.
+    This class manages the core functionality required for Mario-based environments,
+    including game initialization, state management, and rendering using stable-retro.
 
     Attributes:
-        env_name (str): Identifier for the specific Doom environment scenario.
-        task_idx (int): Index of the current task.
-        scenario (str): Name of the scenario module.
-        n_tasks (int): Total number of tasks within the environment.
+        env_name (str): Identifier for the specific Mario level (e.g., 'Level1-1').
+        task_idx (int): Index of the current task (stage within world).
+        scenario (str): Name of the scenario module (world number).
+        n_tasks (int): Total number of tasks within the environment (4 stages per world).
         frame_skip (int): Number of frames to skip for each action.
         record_every (int): Frequency of recording episodes.
         metadata (Dict): Metadata for the environment, including supported render modes.
         viewer (Any): Viewer instance for rendering (if applicable).
-        game (vzd.DoomGame): Instance of the ViZDoom game engine.
-        game_res (Tuple[int, int, int]): Resolution of the game screen.
+        env (retro.RetroEnv): Instance of the stable-retro environment.
+        game_res (Tuple[int, int, int]): Resolution of the game screen (224x256x3).
         _action_space (gymnasium.spaces.Discrete): The action space of the environment.
         _observation_space (gymnasium.spaces.Box): The observation space of the environment.
-        user_variables (Dict[GameVariable, float]): Custom variables for tracking game state.
+        user_variables (Dict[str, float]): Custom variables for tracking game state.
         game_variable_buffer (deque): A buffer for storing recent game variables for statistics.
+        prev_state_data (Dict): Previous frame's game state for delta calculations.
 
     Args:
-        env (str): Name of the specific Doom environment scenario.
+        env (str): Name of the specific Mario level (e.g., 'Level1-1').
         action_space_fn (Callable): Function to generate the action space.
         task_idx (int): Index of the current task.
-        num_tasks (int): Total number of tasks.
+        num_tasks (int): Total number of tasks (typically 4 stages per world).
         frame_skip (int): Number of frames to skip for each action.
         record_every (int): Frequency of recording episodes.
         seed (int): Seed for random number generators.
         render (bool): Whether to enable rendering.
         render_sleep (float): Time to sleep between rendering frames.
         test_only (bool): Whether the environment is being used for testing only.
-        resolution (str): Predefined resolution for the game screen.
         variable_queue_length (int): Length of the game variable buffer.
     """
 
     def __init__(self,
-                 env: str = 'default',
+                 env: str = 'Level1-1',
                  action_space_fn: Callable = None,
                  task_idx: int = 0,
-                 num_tasks: int = 1,
+                 num_tasks: int = 4,
                  frame_skip: int = 4,
                  record_every: int = 100,
                  seed: int = 0,
                  render: bool = True,
                  render_sleep: float = 0.0,
                  test_only: bool = False,
-                 resolution: str = None,
                  variable_queue_length: int = 5):
         super().__init__()
         self.env_name = env
@@ -74,28 +72,28 @@ class DoomEnv(BaseEnv):
         self.metadata['render.modes'] = 'rgb_array'
         self.record_every = record_every
         self.viewer = None
-
-        # Determine the directory of the doom scenario
-        scenario_dir = f'{Path(__file__).parent.resolve()}/scenarios/{self.scenario}'
-
-        # Initialize the Doom game instance
-        self.game = vzd.DoomGame()
-        self.game.load_config(f"{scenario_dir}/conf.cfg")
-        self.game.set_doom_scenario_path(f"{scenario_dir}/{env}.wad")
-        self.game.set_seed(seed)
         self.render_sleep = render_sleep
         self.render_enabled = render
-        self.episode_timeout = self.game.get_episode_timeout()
-        if render or test_only:  # Use a higher resolution for watching gameplay
-            self.game.set_screen_resolution(ScreenResolution.RES_1600X1200)
-            self.frame_skip = 1
-        elif resolution:  # Use a particular predefined resolution
-            self.game.set_screen_resolution(get_screen_resolution(resolution))
-        self.game.init()
 
-        # Define the observation space
-        self.game_res = (self.game.get_screen_height(), self.game.get_screen_width(), 3)
-        self._observation_space = gymnasium.spaces.Box(low=0, high=255, shape=self.game_res, dtype=np.uint8)
+        # Set up the custom integration path for Mario
+        integration_path = str(Path(__file__).parent.parent.parent.resolve() / 'mario.stimuli')
+        retro.data.Integrations.add_custom_path(integration_path)
+
+        # Initialize the retro environment
+        self.game = retro.make(
+            game='SuperMarioBros-Nes',
+            state=env,
+            inttype=retro.data.Integrations.CUSTOM,
+            render_mode='rgb_array' if render or test_only else None
+        )
+
+        # Set seed
+        self.game.action_space.seed(seed)
+        self.game.observation_space.seed(seed)
+
+        # Define the observation space (retro NES resolution is 224x256x3)
+        self.game_res = self.game.observation_space.shape
+        self._observation_space = self.game.observation_space
 
         # Define the action space
         self.available_actions = action_space_fn()
@@ -104,8 +102,11 @@ class DoomEnv(BaseEnv):
         # Initialize the user variable dictionary
         self.user_variables = {var: 0.0 for var in self.user_vars}
 
-        # Initialize the game variable queue
+        # Initialize the game variable buffer
         self.game_variable_buffer = deque(maxlen=variable_queue_length)
+
+        # Track previous state data for delta calculations
+        self.prev_state_data = {}
 
     @property
     def task(self) -> str:
@@ -124,7 +125,11 @@ class DoomEnv(BaseEnv):
         return self.n_tasks
 
     @property
-    def user_vars(self) -> List[GameVariable]:
+    def user_vars(self) -> List[str]:
+        """
+        Returns the list of user-defined variable names to track.
+        Override in subclasses to specify which game variables to track.
+        """
         return []
 
     @property
@@ -143,7 +148,7 @@ class DoomEnv(BaseEnv):
     def observation_space(self) -> gymnasium.Space:
         return self._observation_space
 
-    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None, ) -> Tuple[
+    def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None) -> Tuple[
         np.ndarray, Dict[str, Any]]:
         """
         Resets the environment to its initial state and returns the initial observation.
@@ -156,16 +161,17 @@ class DoomEnv(BaseEnv):
             observation (np.ndarray): Initial state observation of the environment.
             info (Dict[str, Any]): Additional information about the initial state.
         """
-        try:
-            self.game.new_episode()
-        except vzd.ViZDoomIsNotRunningException:
-            print('ViZDoom is not running. Restarting...')
-            self.game.init()
-            self.game.new_episode()
+        if seed is not None:
+            self.game.action_space.seed(seed)
+            self.game.observation_space.seed(seed)
+
+        observation, info = self.game.reset(seed=seed, options=options)
         self.clear_episode_statistics()
-        state = self.game.get_state().screen_buffer
-        state = np.transpose(state, [1, 2, 0])
-        return state, {}
+
+        # Initialize previous state data
+        self.prev_state_data = self._get_state_dict()
+
+        return observation, info
 
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, bool, Dict[str, Any]]:
         """
@@ -181,24 +187,89 @@ class DoomEnv(BaseEnv):
             truncated (bool): Whether the episode was truncated.
             info (Dict[str, Any]): Additional information about the environment and episode.
         """
-        action = self.available_actions[action]
-        self.game.set_action(action)
-        self.game.advance_action(self.frame_skip)
+        # Convert discrete action index to button array
+        button_action = self.available_actions[action]
 
-        state = self.game.get_state()
-        reward = 0.0
-        done = self.game.is_player_dead() or self.game.is_episode_finished() or not state
-        truncated = False
-        info = {}
+        # Execute action with frame skip
+        total_reward = 0.0
+        for _ in range(self.frame_skip):
+            observation, reward, done, truncated, info = self.game.step(button_action)
+            total_reward += reward
+            if done or truncated:
+                break
 
-        observation = np.transpose(state.screen_buffer, [1, 2, 0]) if state else np.float32(np.zeros(self.game_res))
-        if not done:
-            self.game_variable_buffer.append(state.game_variables)
+        # Store current game state variables
+        current_state_data = self._get_state_dict()
+        self.game_variable_buffer.append(current_state_data)
+
         if self.render_enabled:
             self.render('human')
 
+        # Update statistics
         self.store_statistics(self.game_variable_buffer)
-        return observation, reward, done, truncated, info
+
+        # Update previous state for next iteration
+        self.prev_state_data = current_state_data
+
+        return observation, total_reward, done, truncated, info
+
+    def _get_state_dict(self) -> Dict[str, float]:
+        """
+        Convert GameData to a dictionary of all tracked variables.
+
+        Returns:
+            Dictionary mapping variable names to their current values.
+        """
+        state_dict = {}
+        # List of all variables we track from data.json
+        var_names = [
+            'area', 'coins', 'enemy_drawn15', 'enemy_drawn16', 'enemy_drawn17',
+            'enemy_drawn18', 'enemy_drawn19', 'enemy_kill30', 'enemy_kill31',
+            'enemy_kill32', 'enemy_kill33', 'enemy_kill34', 'enemy_kill35',
+            'fireball_counter', 'jump_airborne', 'levelHi', 'levelLo',
+            'level_layout', 'lives', 'moving_direction', 'player_sprite',
+            'player_state', 'player_x_posHi', 'player_x_posLo', 'player_y_pos',
+            'player_y_screen', 'powerstate', 'powerup_appear', 'powerup_yes_no',
+            'score', 'scrolling', 'stage', 'star_timer', 'time',
+            'walk_animation', 'world', 'xscrollHi', 'xscrollLo'
+        ]
+
+        for var_name in var_names:
+            try:
+                state_dict[var_name] = float(self.game.data.lookup_value(var_name))
+            except:
+                state_dict[var_name] = 0.0
+
+        return state_dict
+
+    def get_state_variable(self, var_name: str) -> float:
+        """
+        Retrieves a game state variable value.
+
+        Args:
+            var_name (str): The name of the game variable (e.g., 'score', 'coins', 'xscrollLo').
+
+        Returns:
+            value (float): The current value of the specified game variable.
+        """
+        try:
+            return float(self.game.data.lookup_value(var_name))
+        except:
+            return 0.0
+
+    def get_state_variable_delta(self, var_name: str) -> float:
+        """
+        Retrieves the change in a game state variable since the last step.
+
+        Args:
+            var_name (str): The name of the game variable.
+
+        Returns:
+            delta (float): The change in the variable value.
+        """
+        current = self.get_state_variable(var_name)
+        previous = float(self.prev_state_data.get(var_name, 0))
+        return current - previous
 
     def get_statistics(self, mode: str = '') -> Dict[str, float]:
         """
@@ -273,18 +344,18 @@ class DoomEnv(BaseEnv):
         """
         raise NotImplementedError
 
-    def get_and_update_user_var(self, game_var: GameVariable) -> int:
+    def get_and_update_user_var(self, var_name: str) -> float:
         """
         Retrieves and updates a user-defined variable from the game.
 
         Args:
-            game_var (GameVariable): The game variable to retrieve and update.
+            var_name (str): The name of the game variable to retrieve and update.
 
         Returns:
-            prev_var (int): The previous value of the specified game variable.
+            prev_var (float): The previous value of the specified game variable.
         """
-        prev_var = self.user_variables[game_var]
-        self.user_variables[game_var] = self.game.get_game_variable(game_var)
+        prev_var = self.user_variables[var_name]
+        self.user_variables[var_name] = self.get_state_variable(var_name)
         return prev_var
 
     def render(self, mode="rgb_array"):
@@ -297,14 +368,16 @@ class DoomEnv(BaseEnv):
         Returns:
             img (List[np.ndarray] or np.ndarray): Rendered image of the environment state.
         """
-        state = self.game.get_state()
-        img = np.transpose(state.screen_buffer, [1, 2, 0]) if state else np.uint8(np.zeros(self.game_res))
+        img = self.game.render()
+        if img is None:
+            img = np.zeros(self.game_res, dtype=np.uint8)
+
         if mode == 'human':
             if not self.render_enabled:
                 return [img]
             try:
                 # Render the image to the screen with swapped red and blue channels
-                cv2.imshow('DOOM', img[:, :, [2, 1, 0]])
+                cv2.imshow('Super Mario Bros', img[:, :, [2, 1, 0]])
                 cv2.waitKey(1)
             except Exception as e:
                 print(f'Screen rendering unsuccessful: {e}')
@@ -327,8 +400,9 @@ class DoomEnv(BaseEnv):
         """
         Clears or resets statistics collected during an episode.
         """
-        self.user_variables.fromkeys(self.user_variables, 0.0)
+        self.user_variables = {var: 0.0 for var in self.user_vars}
         self.game_variable_buffer.clear()
+        self.prev_state_data = {}
 
     def close(self):
         """

@@ -10,23 +10,31 @@ def main(args: argparse.Namespace):
     env.reset()
     total_reward = 0
     success = 0
-    for steps in range(1000):
+    for steps in range(args.max_steps):
         action = env.action_space.sample()
         state, reward, done, truncated, info = env.step(action)
         total_reward += reward
         success += env.get_success()
-        env.render()
-        if done:
+        if args.render:
+            env.render()
+        if done or truncated:
             break
-    print(f"Task {env.task_id}-{env.name} finished. Reward: {total_reward:.2f}. Success: {success / steps:.2f}")
+    print(f"Task {env.task_id}-{env.name} finished after {steps} steps.")
+    print(f"Total Reward: {total_reward:.2f}")
+    print(f"Average Success: {success / (steps + 1):.2f}")
     env.close()
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Continual Doom")
-    parser.add_argument('--scenario', type=str, default='health_gathering',
-                        choices=['health_gathering', 'run_and_gun', 'chainsaw', 'raise_the_roof', 'floor_is_lava',
-                                 'hide_and_seek', 'arms_dealer', 'pitfall'])
-    parser.add_argument("--task", type=str, default='hard',
-                        help="Name of the environments in the scenario(s) to run")
+    parser = argparse.ArgumentParser(description="Continual Super Mario Bros - Single Environment Test")
+    parser.add_argument('--scenario', type=str, default='world1',
+                        choices=['world1', 'world2', 'world3', 'world4',
+                                 'world5', 'world6', 'world7', 'world8'],
+                        help="Which world to run")
+    parser.add_argument("--task", type=str, default='Level1-1',
+                        help="Name of the level to run (e.g., Level1-1, Level2-3)")
+    parser.add_argument("--max-steps", type=int, default=5000,
+                        help="Maximum number of steps to run")
+    parser.add_argument("--render", action='store_true', default=False,
+                        help="Whether to render the environment")
     main(parser.parse_args())
