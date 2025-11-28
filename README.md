@@ -1,12 +1,12 @@
-# COOM - Super Mario Bros Edition
+# GHAIA - Games Human-AI Alignment Benchmark
 
-COOM (originally Continual Doom) has been transformed into a Continual Reinforcement Learning benchmark based on **Super Mario Bros**. This benchmark consists of task sequences across the 8 worlds of Super Mario Bros, with 4 stages per world, designed for task-incremental continual learning.
+> **Built upon [COOM (Continual Doom)](https://github.com/TTomilin/COOM)** - This project is based on the COOM benchmark by Tristan Tomilin et al. We extend their excellent continual reinforcement learning framework to create GHAIA, a benchmark for evaluating human-AI alignment in game-based environments.
 
-> **Note:** This is a modified version of COOM that replaces ViZDoom with stable-retro for Super Mario Bros environments.
+**GHAIA** (Games Human-AI Alignment) is a continual reinforcement learning benchmark based on **Super Mario Bros**, designed to evaluate AI agents' ability to learn sequential tasks while maintaining alignment with human gameplay patterns and preferences. The benchmark consists of task sequences across the 8 worlds of Super Mario Bros, with 4 stages per world.
 
 <p align="center">
-  <img src="assets/gifs/demo1.gif" alt="Demo1" style="vertical-align: top;"/>
-  <img src="assets/gifs/demo2.gif" alt="Demo2" style="vertical-align: top;"/>
+  <img src="assets/gifs/mario_demo1.gif" alt="Mario Demo 1" style="vertical-align: top;"/>
+  <img src="assets/gifs/mario_demo2.gif" alt="Mario Demo 2" style="vertical-align: top;"/>
 </p>
 
 ## Installation
@@ -19,12 +19,12 @@ COOM (originally Continual Doom) has been transformed into a Continual Reinforce
 
 1. Clone the repository
 ```bash
-$ git clone https://github.com/hyintell/COOM
+$ git clone --recurse-submodules https://github.com/courtois-neuromod/GHAIA
 ```
 
 2. Navigate into the repository
 ```bash
-$ cd COOM
+$ cd GHAIA
 ```
 
 3. Install stable-retro (required for Mario environments)
@@ -32,7 +32,7 @@ $ cd COOM
 $ pip install stable-retro
 ```
 
-4. Install COOM from source
+4. Install GHAIA from source
 ```bash
 $ pip install -e .
 ```
@@ -207,9 +207,9 @@ The following game variables are accessible for reward shaping and statistics:
 ## Architecture Overview
 
 ```
-COOM/
+GHAIA/
 ├── env/
-│   ├── scenario.py          # MarioEnv base class (replaces DoomEnv)
+│   ├── scenario.py          # MarioEnv base class
 │   ├── continual.py         # ContinualLearningEnv wrapper
 │   ├── builder.py           # Environment factory functions
 │   └── scenarios/
@@ -218,11 +218,11 @@ COOM/
 │       ├── ...
 │       └── world8/          # World 8 scenario
 ├── wrappers/
-│   ├── reward.py            # Reward shaping wrappers (adapted for Mario)
+│   ├── reward.py            # Reward shaping wrappers
 │   └── observation.py       # Observation preprocessing
 ├── utils/
 │   └── config.py            # Scenario and sequence definitions
-└── mario.stimuli/           # Custom retro integration
+└── mario.stimuli/           # Custom retro integration (submodule)
     ├── SuperMarioBros-Nes/
     │   ├── data.json        # Game state variable addresses
     │   ├── scenario.json    # Reward/done conditions
@@ -232,8 +232,8 @@ COOM/
 
 ## Key Differences from Original COOM
 
-| Aspect | Original COOM | Mario COOM |
-|--------|---------------|------------|
+| Aspect | Original COOM (Doom) | GHAIA (Mario) |
+|--------|---------------------|---------------|
 | Game Engine | ViZDoom | stable-retro |
 | Game | Doom (1993) | Super Mario Bros (1985) |
 | Scenarios | 8 custom scenarios | 8 worlds (32 levels total) |
@@ -242,6 +242,7 @@ COOM/
 | Observation | 160×120 RGB | 224×256 RGB (NES resolution) |
 | Success Metric | Scenario-dependent | Horizontal progress (x-position) |
 | Reward | Dense/sparse per scenario | Progress-focused with time penalty |
+| Focus | Continual RL | Human-AI Alignment + Continual RL |
 
 ## Training Agents
 
@@ -249,9 +250,17 @@ The benchmark is compatible with any RL algorithm that works with Gymnasium envi
 
 ## Citation
 
-If you use this Mario version of COOM in your research, please cite the original COOM benchmark:
+If you use GHAIA in your research, please cite both the GHAIA benchmark and the original COOM framework it builds upon:
 
 ```bibtex
+@article{ghaia2024,
+  title={GHAIA: Games Human-AI Alignment Benchmark},
+  author={[To be updated]},
+  journal={OpenReview},
+  year={2024},
+  url={https://openreview.net/pdf?id=YAVB439L9X}
+}
+
 @inproceedings{tomilin2023coom,
   title={COOM: A Game Benchmark for Continual Reinforcement Learning},
   author={Tomilin, Tristan and Ghumare, Meng Fang and others},
@@ -266,6 +275,7 @@ MIT License - see LICENSE file for details.
 
 ## Acknowledgments
 
-- Original COOM benchmark by Tristan Tomilin et al.
+- **COOM Framework**: This project builds upon the excellent [COOM (Continual Doom)](https://github.com/TTomilin/COOM) benchmark by Tristan Tomilin et al., which provided the foundational continual reinforcement learning architecture
 - Super Mario Bros © Nintendo
 - stable-retro by OpenAI (maintained by the community)
+- Courtois NeuroMod Project for supporting this research
