@@ -2,8 +2,8 @@ import numpy as np
 from collections import deque
 from typing import List, Dict
 
-from COOM.env.scenario import MarioEnv
-from COOM.wrappers.reward import WrapperHolder, PositionRewardWrapper, ConstantRewardWrapper
+from GHAIA.env.scenario import MarioEnv
+from GHAIA.wrappers.reward import WrapperHolder, PositionRewardWrapper, ConstantRewardWrapper
 
 
 class World1(MarioEnv):

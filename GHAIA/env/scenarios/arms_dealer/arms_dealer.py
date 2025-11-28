@@ -4,9 +4,9 @@ import numpy as np
 from typing import Dict, List
 from vizdoom import GameVariable
 
-from COOM.env.scenario import DoomEnv
-from COOM.utils.utils import distance_traversed
-from COOM.wrappers.reward import WrapperHolder, ConstantRewardWrapper, MovementRewardWrapper, \
+from GHAIA.env.scenario import DoomEnv
+from GHAIA.utils.utils import distance_traversed
+from GHAIA.wrappers.reward import WrapperHolder, ConstantRewardWrapper, MovementRewardWrapper, \
     UserVariableRewardWrapper
 
 

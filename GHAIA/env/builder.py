@@ -4,10 +4,10 @@ import numpy as np
 
 from gymnasium.wrappers import NormalizeObservation, FrameStack, RecordVideo
 
-from COOM.env.scenario import MarioEnv
-from COOM.utils.config import Sequence, sequence_scenarios, sequence_tasks, scenario_config, Scenario, \
+from GHAIA.env.scenario import MarioEnv
+from GHAIA.utils.config import Sequence, sequence_scenarios, sequence_tasks, scenario_config, Scenario, \
     default_wrapper_config
-from COOM.wrappers.observation import Augment, Resize, Rescale, RGBStack
+from GHAIA.wrappers.observation import Augment, Resize, Rescale, RGBStack
 
 
 def make_sequence(sequence: Sequence,

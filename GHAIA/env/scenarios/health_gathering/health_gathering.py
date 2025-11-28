@@ -2,9 +2,9 @@ import numpy as np
 from collections import deque
 from typing import List, Dict
 
-from COOM.env.scenario import DoomEnv
-from COOM.utils.utils import distance_traversed
-from COOM.wrappers.reward import WrapperHolder, ConstantRewardWrapper, GameVariableRewardWrapper
+from GHAIA.env.scenario import DoomEnv
+from GHAIA.utils.utils import distance_traversed
+from GHAIA.wrappers.reward import WrapperHolder, ConstantRewardWrapper, GameVariableRewardWrapper
 
 
 class HealthGathering(DoomEnv):

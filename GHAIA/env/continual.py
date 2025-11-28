@@ -4,10 +4,10 @@ import gymnasium
 import numpy as np
 from numpy import ndarray
 
-from COOM.env.base import BaseEnv
-from COOM.env.builder import make_sequence
-from COOM.env.scenario import MarioEnv
-from COOM.utils.config import Sequence
+from GHAIA.env.base import BaseEnv
+from GHAIA.env.builder import make_sequence
+from GHAIA.env.scenario import MarioEnv
+from GHAIA.utils.config import Sequence
 
 
 class ContinualLearningEnv(BaseEnv):

@@ -8,7 +8,7 @@ import gymnasium
 import numpy as np
 import retro
 
-from COOM.env.base import BaseEnv
+from GHAIA.env.base import BaseEnv
 
 
 class MarioEnv(BaseEnv):

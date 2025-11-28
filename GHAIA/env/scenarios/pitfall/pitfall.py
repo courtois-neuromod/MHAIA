@@ -3,8 +3,8 @@ from collections import deque
 from typing import Dict, List
 from vizdoom import DEAD
 
-from COOM.env.scenario import DoomEnv
-from COOM.wrappers.reward import WrapperHolder, ProportionalVariableRewardWrapper, BooleanVariableRewardWrapper, \
+from GHAIA.env.scenario import DoomEnv
+from GHAIA.wrappers.reward import WrapperHolder, ProportionalVariableRewardWrapper, BooleanVariableRewardWrapper, \
     GoalRewardWrapper
 
 

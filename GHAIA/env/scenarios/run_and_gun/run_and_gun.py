@@ -3,9 +3,9 @@ from collections import deque
 import numpy as np
 from typing import List, Dict
 
-from COOM.env.scenario import DoomEnv
-from COOM.utils.utils import distance_traversed
-from COOM.wrappers.reward import GameVariableRewardWrapper, MovementRewardWrapper, WrapperHolder
+from GHAIA.env.scenario import DoomEnv
+from GHAIA.utils.utils import distance_traversed
+from GHAIA.wrappers.reward import GameVariableRewardWrapper, MovementRewardWrapper, WrapperHolder
 
 
 class RunAndGun(DoomEnv):
