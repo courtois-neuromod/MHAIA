@@ -1,7 +1,7 @@
 import argparse
 
-from GHAIA.env.builder import make_env
-from GHAIA.utils.config import Scenario
+from MHAIA.env.builder import make_env
+from MHAIA.utils.config import Scenario
 
 
 def main(args: argparse.Namespace):

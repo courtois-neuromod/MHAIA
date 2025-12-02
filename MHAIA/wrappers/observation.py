@@ -4,9 +4,9 @@ import numpy as np
 from gymnasium.spaces import Box
 from typing import Tuple, Dict, Any
 
-from GHAIA.env.scenario import MarioEnv
-from GHAIA.utils.utils import combine_frames
-from GHAIA.utils.config import Augmentation
+from MHAIA.env.scenario import MarioEnv
+from MHAIA.utils.utils import combine_frames
+from MHAIA.utils.config import Augmentation
 
 
 class Rescale(gymnasium.Wrapper):

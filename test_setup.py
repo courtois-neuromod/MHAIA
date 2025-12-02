@@ -7,7 +7,7 @@ Run this to verify all dependencies are correctly installed.
 import sys
 
 print("=" * 60)
-print("GHAIA Setup Diagnostic")
+print("MHAIA Setup Diagnostic")
 print("=" * 60)
 print()
 
@@ -57,35 +57,35 @@ except ImportError as e:
 
 print()
 
-# Test GHAIA imports
-print("Testing GHAIA modules...")
+# Test MHAIA imports
+print("Testing MHAIA modules...")
 try:
-    from GHAIA.env.scenario import MarioEnv
-    print("✓ GHAIA.env.scenario.MarioEnv")
+    from MHAIA.env.scenario import MarioEnv
+    print("✓ MHAIA.env.scenario.MarioEnv")
 except ImportError as e:
-    print("✗ GHAIA.env.scenario.MarioEnv")
-    errors.append(("GHAIA.env.scenario", str(e)))
+    print("✗ MHAIA.env.scenario.MarioEnv")
+    errors.append(("MHAIA.env.scenario", str(e)))
 
 try:
-    from GHAIA.env.builder import make_env, build_mario_actions
-    print("✓ GHAIA.env.builder")
+    from MHAIA.env.builder import make_env, build_mario_actions
+    print("✓ MHAIA.env.builder")
 except ImportError as e:
-    print("✗ GHAIA.env.builder")
-    errors.append(("GHAIA.env.builder", str(e)))
+    print("✗ MHAIA.env.builder")
+    errors.append(("MHAIA.env.builder", str(e)))
 
 try:
-    from GHAIA.utils.config import Scenario, Sequence
-    print("✓ GHAIA.utils.config")
+    from MHAIA.utils.config import Scenario, Sequence
+    print("✓ MHAIA.utils.config")
 except ImportError as e:
-    print("✗ GHAIA.utils.config")
-    errors.append(("GHAIA.utils.config", str(e)))
+    print("✗ MHAIA.utils.config")
+    errors.append(("MHAIA.utils.config", str(e)))
 
 try:
-    from GHAIA.wrappers.reward import PositionRewardWrapper
-    print("✓ GHAIA.wrappers.reward")
+    from MHAIA.wrappers.reward import PositionRewardWrapper
+    print("✓ MHAIA.wrappers.reward")
 except ImportError as e:
-    print("✗ GHAIA.wrappers.reward")
-    errors.append(("GHAIA.wrappers.reward", str(e)))
+    print("✗ MHAIA.wrappers.reward")
+    errors.append(("MHAIA.wrappers.reward", str(e)))
 
 print()
 
@@ -143,5 +143,5 @@ else:
     print("✓ ALL CHECKS PASSED!")
     print()
     print("Your setup is ready. Try running:")
-    print("  python GHAIA/examples/run_single.py --scenario world1 --task Level1-1")
+    print("  python MHAIA/examples/run_single.py --scenario world1 --task Level1-1")
     sys.exit(0)

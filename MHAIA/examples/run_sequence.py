@@ -1,7 +1,7 @@
 import argparse
 
-from GHAIA.env.continual import ContinualLearningEnv
-from GHAIA.utils.config import Sequence
+from MHAIA.env.continual import ContinualLearningEnv
+from MHAIA.utils.config import Sequence
 
 
 def main(args: argparse.Namespace):

@@ -1,10 +1,10 @@
-# GHAIA - Games Human-AI Alignment Benchmark
+# MHAIA - Mario Human-AI Alignment Benchmark
 
-> **Built upon [COOM (Continual Doom)](https://github.com/TTomilin/COOM)** - This project is based on the COOM benchmark by Tristan Tomilin et al. We extend their excellent continual reinforcement learning framework to create GHAIA, a benchmark for evaluating human-AI alignment in game-based environments.
+> **Built upon [COOM (Continual Doom)](https://github.com/TTomilin/COOM)** - This project is based on the COOM benchmark by Tristan Tomilin et al. We extend their excellent continual reinforcement learning framework to create MHAIA, a benchmark for evaluating human-AI alignment in game-based environments.
 
-**GHAIA** (Games Human-AI Alignment) is a continual reinforcement learning benchmark based on **Super Mario Bros**, designed to evaluate AI agents' ability to learn sequential tasks while maintaining alignment with human gameplay patterns and preferences. The benchmark consists of task sequences across the 8 worlds of Super Mario Bros, with 4 stages per world.
+**MHAIA** (Mario Human-AI Alignment) is a continual reinforcement learning benchmark based on **Super Mario Bros**, designed to evaluate AI agents' ability to learn sequential tasks while maintaining alignment with human gameplay patterns and preferences. The benchmark consists of task sequences across the 8 worlds of Super Mario Bros, with 4 stages per world.
 
-📄 **Paper**: [GHAIA on OpenReview](https://openreview.net/forum?id=YAVB439L9X)
+📄 **Paper**: [MHAIA on OpenReview](https://openreview.net/forum?id=YAVB439L9X)
 
 <p align="center">
   <img src="assets/gifs/mario_demo1.gif" alt="Mario Demo 1" style="vertical-align: top;"/>
@@ -21,12 +21,12 @@
 
 1. Clone the repository
 ```bash
-git clone --recurse-submodules https://github.com/courtois-neuromod/GHAIA
+git clone --recurse-submodules https://github.com/courtois-neuromod/MHAIA
 ```
 
 2. Navigate into the repository
 ```bash
-cd GHAIA
+cd MHAIA
 ```
 
 3. Create and activate a virtual environment
@@ -35,7 +35,7 @@ python -m venv env
 source env/bin/activate  # On Windows: env\Scripts\activate
 ```
 
-4. Install GHAIA with all dependencies
+4. Install MHAIA with all dependencies
 ```bash
 # For basic Mario environment usage
 pip install -e .
@@ -48,7 +48,7 @@ pip install -e ".[cl]"
 
 ### ROM Setup
 
-You need the Super Mario Bros (NES) ROM file to use GHAIA. There are two methods:
+You need the Super Mario Bros (NES) ROM file to use MHAIA. There are two methods:
 
 #### Method 1: Via DataLad (Recommended for CNeuromod members)
 
@@ -177,8 +177,8 @@ Alternate between different worlds and stages:
 ### Run a Single Level
 
 ```python
-from GHAIA.env.builder import make_env
-from GHAIA.utils.config import Scenario
+from MHAIA.env.builder import make_env
+from MHAIA.utils.config import Scenario
 
 # Create a World 1 environment running Level 1-1
 env = make_env(Scenario.WORLD1, task='Level1-1')
@@ -196,8 +196,8 @@ env.close()
 ### Run a Continual Learning Sequence
 
 ```python
-from GHAIA.env.continual import ContinualLearningEnv
-from GHAIA.utils.config import Sequence
+from MHAIA.env.continual import ContinualLearningEnv
+from MHAIA.utils.config import Sequence
 
 # Create a continual learning environment
 cl_env = ContinualLearningEnv(
@@ -219,12 +219,12 @@ cl_env.close()
 
 Test a single world:
 ```bash
-python GHAIA/examples/run_single.py --scenario world1 --task Level1-1 --render
+python MHAIA/examples/run_single.py --scenario world1 --task Level1-1 --render
 ```
 
 Test a continual learning sequence:
 ```bash
-python GHAIA/examples/run_sequence.py --sequence WORLD_PROGRESSION_4 --steps-per-env 1000 --render
+python MHAIA/examples/run_sequence.py --sequence WORLD_PROGRESSION_4 --steps-per-env 1000 --render
 ```
 
 ## Custom Integration Path
@@ -254,7 +254,7 @@ The following game variables are accessible for reward shaping and statistics:
 ## Architecture Overview
 
 ```
-GHAIA/
+MHAIA/
 ├── env/
 │   ├── scenario.py          # MarioEnv base class
 │   ├── continual.py         # ContinualLearningEnv wrapper
@@ -279,7 +279,7 @@ GHAIA/
 
 ## Key Differences from Original COOM
 
-| Aspect | Original COOM (Doom) | GHAIA (Mario) |
+| Aspect | Original COOM (Doom) | MHAIA (Mario) |
 |--------|---------------------|---------------|
 | Game Engine | ViZDoom | stable-retro |
 | Game | Doom (1993) | Super Mario Bros (1985) |
@@ -346,7 +346,7 @@ For detailed CL configurations and reproducing paper results, see the [CL README
 
 ## Citation
 
-If you use GHAIA in your research, please cite both the GHAIA benchmark and the original COOM framework it builds upon:
+If you use MHAIA in your research, please cite both the MHAIA benchmark and the original COOM framework it builds upon:
 
 ```bibtex
 @inproceedings{harel2025human,

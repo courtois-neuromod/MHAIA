@@ -8,8 +8,8 @@ from CL.replay.buffers import BufferType
 from CL.rl.sac import SAC
 from CL.utils.logging import EpochLogger, WandBLogger
 from CL.utils.running import get_activation_from_str
-from GHAIA.env.builder import make_env, build_multi_discrete_actions
-from GHAIA.utils.config import Scenario, scenario_config, default_wrapper_config
+from MHAIA.env.builder import make_env, build_multi_discrete_actions
+from MHAIA.utils.config import Scenario, scenario_config, default_wrapper_config
 from config import update_wrapper_config, get_arg_parser
 
 

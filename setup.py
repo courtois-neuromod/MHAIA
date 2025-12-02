@@ -23,10 +23,10 @@ results_processing_requirements = [
 ]
 
 setup(
-    name="GHAIA",
-    description="GHAIA: Games Human-AI Alignment Benchmark - Continual RL on Super Mario Bros",
+    name="MHAIA",
+    description="MHAIA: Mario Human-AI Alignment Benchmark - Continual RL on Super Mario Bros",
     version='2.0.0',
-    url='https://github.com/courtois-neuromod/GHAIA',
+    url='https://github.com/courtois-neuromod/MHAIA',
     author='Courtois NeuroMod',
     author_email='',
     license='MIT',

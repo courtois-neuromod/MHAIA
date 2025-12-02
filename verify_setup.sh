@@ -1,7 +1,7 @@
 #!/bin/bash
-# Verification script for GHAIA CL setup
+# Verification script for MHAIA CL setup
 
-echo "=== GHAIA CL Setup Verification ==="
+echo "=== MHAIA CL Setup Verification ==="
 echo ""
 
 # Check if env exists
@@ -45,11 +45,11 @@ else
     exit 1
 fi
 
-# Check GHAIA
-if python -c "import GHAIA" 2>/dev/null; then
-    echo "✓ GHAIA installed"
+# Check MHAIA
+if python -c "import MHAIA" 2>/dev/null; then
+    echo "✓ MHAIA installed"
 else
-    echo "❌ GHAIA not installed. Run:"
+    echo "❌ MHAIA not installed. Run:"
     echo "   pip install -e '.[cl]'"
     exit 1
 fi

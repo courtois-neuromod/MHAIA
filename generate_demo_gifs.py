@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate demonstration GIFs for GHAIA README."""
+"""Generate demonstration GIFs for MHAIA README."""
 
 import argparse
 import os
@@ -9,8 +9,8 @@ import gymnasium as gym
 import numpy as np
 from PIL import Image
 
-from GHAIA.env.builder import make_env
-from GHAIA.utils.config import Scenario
+from MHAIA.env.builder import make_env
+from MHAIA.utils.config import Scenario
 
 
 def generate_gif(scenario: Scenario, task: str, output_path: str, max_steps: int = 500, fps: int = 15):
@@ -93,7 +93,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate demo GIFs for GHAIA")
+    parser = argparse.ArgumentParser(description="Generate demo GIFs for MHAIA")
     parser.add_argument('--output-dir', type=str, default='assets/gifs',
                         help="Directory to save GIFs")
     parser.add_argument('--max-steps', type=int, default=500,
