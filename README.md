@@ -1,7 +1,7 @@
-# MHAIA - Mario Human-AI Alignment Benchmark
+# MHAIA - Mario Human-AI Alignment Benchmark (Status: WiP)
 
 > 🎵 Mario-hii Mario-huu Mario-hoo Mario ah haaaa! 🎵
-> 
+>
 > — An exhausted data manager.
 
 **Built upon [COOM (Continual Doom)](https://github.com/TTomilin/COOM)** - This project is based on the COOM benchmark by Tristan Tomilin et al. We extend their excellent continual reinforcement learning framework to create MHAIA, a benchmark for evaluating human-AI alignment in game-based environments.
@@ -18,28 +18,33 @@
 ## Installation
 
 ### Prerequisites
+
 - Python 3.8+
 - Super Mario Bros ROM file (see ROM setup below)
 
 ### Install from source:
 
 1. Clone the repository
+
 ```bash
 git clone --recurse-submodules https://github.com/courtois-neuromod/MHAIA
 ```
 
 2. Navigate into the repository
+
 ```bash
 cd MHAIA
 ```
 
 3. Create and activate a virtual environment
+
 ```bash
 python -m venv env
 source env/bin/activate  # On Windows: env\Scripts\activate
 ```
 
 4. Install MHAIA with all dependencies
+
 ```bash
 # For basic Mario environment usage
 pip install -e .
@@ -86,11 +91,13 @@ python -m retro.import /path/to/your/roms/
 ```
 
 **Required ROM specifications:**
+
 - **Game**: Super Mario Bros (NES)
 - **Region**: USA/North America (NTSC)
 - **SHA-1 Hash**: `facee9c577a5262dbe33ac4930bb0b58c8c037f7`
 
 You can verify your ROM hash with:
+
 ```bash
 sha1sum /path/to/your/SuperMarioBros.nes
 ```
@@ -99,27 +106,29 @@ sha1sum /path/to/your/SuperMarioBros.nes
 
 The benchmark contains **8 worlds** from Super Mario Bros, each with **4 stages**:
 
-| World | Stages | Description | Difficulty |
-|-------|--------|-------------|------------|
-| **World 1** | 1-1, 1-2, 1-3, 1-4 | Classic overground, underground, tree-top, and castle | Easy |
-| **World 2** | 2-1, 2-2, 2-3, 2-4 | Water world with swimming mechanics | Medium |
-| **World 3** | 3-1, 3-2, 3-3, 3-4 | Night levels with aggressive enemies | Medium |
-| **World 4** | 4-1, 4-2, 4-3, 4-4 | Island platforms with water gaps | Medium-Hard |
-| **World 5** | 5-1, 5-2, 5-3, 5-4 | Cloud world with vertical platforming | Hard |
-| **World 6** | 6-1, 6-2, 6-3, 6-4 | Ice world with slippery physics | Hard |
-| **World 7** | 7-1, 7-2, 7-3, 7-4 | Pipe world with Piranha Plants | Very Hard |
-| **World 8** | 8-1, 8-2, 8-3, 8-4 | Final world with all enemy types | Extreme |
+| World       | Stages             | Description                                           | Difficulty  |
+| ----------- | ------------------ | ----------------------------------------------------- | ----------- |
+| **World 1** | 1-1, 1-2, 1-3, 1-4 | Classic overground, underground, tree-top, and castle | Easy        |
+| **World 2** | 2-1, 2-2, 2-3, 2-4 | Water world with swimming mechanics                   | Medium      |
+| **World 3** | 3-1, 3-2, 3-3, 3-4 | Night levels with aggressive enemies                  | Medium      |
+| **World 4** | 4-1, 4-2, 4-3, 4-4 | Island platforms with water gaps                      | Medium-Hard |
+| **World 5** | 5-1, 5-2, 5-3, 5-4 | Cloud world with vertical platforming                 | Hard        |
+| **World 6** | 6-1, 6-2, 6-3, 6-4 | Ice world with slippery physics                       | Hard        |
+| **World 7** | 7-1, 7-2, 7-3, 7-4 | Pipe world with Piranha Plants                        | Very Hard   |
+| **World 8** | 8-1, 8-2, 8-3, 8-4 | Final world with all enemy types                      | Extreme     |
 
 Each level is accessible via its name (e.g., `'Level1-1'`, `'Level3-2'`, `'Level8-4'`).
 
 ## Reward Structure
 
 The Mario benchmark uses a **progress-focused reward** structure:
+
 - **Primary Reward**: Horizontal movement (x-position progress through the level)
 - **Time Penalty**: Small negative reward per frame (encourages faster completion)
 - **Success Metric**: Maximum x-position reached (normalized between lower and upper bounds)
 
 ### Reward Options
+
 - **Dense Rewards**: Position progress + time penalty
 - **Sparse Rewards**: Position progress only
 
@@ -127,52 +136,64 @@ The Mario benchmark uses a **progress-focused reward** structure:
 
 The action space is based on the NES controller with 12 discrete actions:
 
-| Movement | Jump (A) | Run/Fire (B) | Action Description |
-|----------|----------|--------------|-------------------|
-| None | No | No | Stand still |
-| None | No | Yes | Run in place / Fire |
-| None | Yes | No | Jump in place |
-| None | Yes | Yes | High jump in place |
-| Left | No | No | Walk left |
-| Left | No | Yes | Run left |
-| Left | Yes | No | Jump left |
-| Left | Yes | Yes | Run-jump left |
-| Right | No | No | Walk right |
-| Right | No | Yes | Run right |
-| Right | Yes | No | Jump right |
-| Right | Yes | Yes | Run-jump right |
+| Movement | Jump (A) | Run/Fire (B) | Action Description  |
+| -------- | -------- | ------------ | ------------------- |
+| None     | No       | No           | Stand still         |
+| None     | No       | Yes          | Run in place / Fire |
+| None     | Yes      | No           | Jump in place       |
+| None     | Yes      | Yes          | High jump in place  |
+| Left     | No       | No           | Walk left           |
+| Left     | No       | Yes          | Run left            |
+| Left     | Yes      | No           | Jump left           |
+| Left     | Yes      | Yes          | Run-jump left       |
+| Right    | No       | No           | Walk right          |
+| Right    | No       | Yes          | Run right           |
+| Right    | Yes      | No           | Jump right          |
+| Right    | Yes      | Yes          | Run-jump right      |
 
 ## Continual Learning Sequences
 
 The benchmark includes **6 predefined continual learning sequences**:
 
 ### 1. WORLD_PROGRESSION_4
+
 Progress through the first 4 worlds, using stage 1 of each:
+
 - Tasks: Level1-1 → Level2-1 → Level3-1 → Level4-1
 - **Purpose**: Gradual difficulty increase across different world themes
 
 ### 2. WORLD_PROGRESSION_8
+
 Progress through all 8 worlds, using stage 1 of each:
+
 - Tasks: Level1-1 → Level2-1 → ... → Level8-1
 - **Purpose**: Maximum variety in visual themes and mechanics
 
 ### 3. STAGE_TYPES_4
+
 Experience all 4 stage types (X-1, X-2, X-3, X-4) across different worlds:
+
 - Tasks: Level1-1 → Level2-2 → Level3-3 → Level4-4
 - **Purpose**: Learn different stage patterns (overground, underground, athletic, castle)
 
 ### 4. WORLD_COMPLETE
+
 Complete all 4 stages of World 1, then all 4 stages of World 4:
+
 - Tasks: Level1-1 → Level1-2 → Level1-3 → Level1-4 → Level4-1 → Level4-2 → Level4-3 → Level4-4
 - **Purpose**: Master individual worlds completely before moving on
 
 ### 5. DIFFICULTY_CURVE
+
 Progress through increasing difficulty:
+
 - Tasks: Level1-1 → Level2-1 → ... → Level8-1
 - **Purpose**: Systematic difficulty progression
 
 ### 6. MIXED_WORLDS
+
 Alternate between different worlds and stages:
+
 - Tasks: Level1-1 → Level3-2 → Level5-3 → Level7-4 → Level2-1 → Level4-2 → Level6-3 → Level8-4
 - **Purpose**: Test adaptability with frequent context switches
 
@@ -222,11 +243,13 @@ cl_env.close()
 ### Run Example Scripts
 
 Test a single world:
+
 ```bash
 python MHAIA/examples/run_single.py --scenario world1 --task Level1-1 --render
 ```
 
 Test a continual learning sequence:
+
 ```bash
 python MHAIA/examples/run_sequence.py --sequence WORLD_PROGRESSION_4 --steps-per-env 1000 --render
 ```
@@ -234,6 +257,7 @@ python MHAIA/examples/run_sequence.py --sequence WORLD_PROGRESSION_4 --steps-per
 ## Custom Integration Path
 
 The Mario levels use a custom stable-retro integration located in `mario.stimuli/`. This integration includes:
+
 - **data.json**: Memory addresses for game state variables (score, coins, position, lives, etc.)
 - **scenario.json**: Reward and episode termination conditions
 - **metadata.json**: Benchmark performance metadata
@@ -243,17 +267,17 @@ The Mario levels use a custom stable-retro integration located in `mario.stimuli
 
 The following game variables are accessible for reward shaping and statistics:
 
-| Variable | Description | Type |
-|----------|-------------|------|
-| `score` | Game score | int |
-| `coins` | Coins collected | int |
-| `lives` | Remaining lives | int |
-| `xscrollLo` / `xscrollHi` | Horizontal scroll position (combined for full x-pos) | int |
-| `player_x_posLo` / `player_x_posHi` | Player X position | int |
-| `player_y_pos` | Player Y position | int |
-| `time` | Time remaining | int |
-| `world` | Current world | int |
-| `stage` | Current stage | int |
+| Variable                            | Description                                          | Type |
+| ----------------------------------- | ---------------------------------------------------- | ---- |
+| `score`                             | Game score                                           | int  |
+| `coins`                             | Coins collected                                      | int  |
+| `lives`                             | Remaining lives                                      | int  |
+| `xscrollLo` / `xscrollHi`           | Horizontal scroll position (combined for full x-pos) | int  |
+| `player_x_posLo` / `player_x_posHi` | Player X position                                    | int  |
+| `player_y_pos`                      | Player Y position                                    | int  |
+| `time`                              | Time remaining                                       | int  |
+| `world`                             | Current world                                        | int  |
+| `stage`                             | Current stage                                        | int  |
 
 ## Architecture Overview
 
@@ -283,17 +307,17 @@ MHAIA/
 
 ## Key Differences from Original COOM
 
-| Aspect | Original COOM (Doom) | MHAIA (Mario) |
-|--------|---------------------|---------------|
-| Game Engine | ViZDoom | stable-retro |
-| Game | Doom (1993) | Super Mario Bros (1985) |
-| Scenarios | 8 custom scenarios | 8 worlds (32 levels total) |
-| Tasks per scenario | 2-9 variations | 4 stages per world |
-| Action Space | 12 actions (turn, move, shoot/jump) | 12 actions (move, jump, run) |
-| Observation | 160×120 RGB | 224×256 RGB (NES resolution) |
-| Success Metric | Scenario-dependent | Horizontal progress (x-position) |
-| Reward | Dense/sparse per scenario | Progress-focused with time penalty |
-| Focus | Continual RL | Human-AI Alignment + Continual RL |
+| Aspect             | Original COOM (Doom)                | MHAIA (Mario)                      |
+| ------------------ | ----------------------------------- | ---------------------------------- |
+| Game Engine        | ViZDoom                             | stable-retro                       |
+| Game               | Doom (1993)                         | Super Mario Bros (1985)            |
+| Scenarios          | 8 custom scenarios                  | 8 worlds (32 levels total)         |
+| Tasks per scenario | 2-9 variations                      | 4 stages per world                 |
+| Action Space       | 12 actions (turn, move, shoot/jump) | 12 actions (move, jump, run)       |
+| Observation        | 160×120 RGB                         | 224×256 RGB (NES resolution)       |
+| Success Metric     | Scenario-dependent                  | Horizontal progress (x-position)   |
+| Reward             | Dense/sparse per scenario           | Progress-focused with time penalty |
+| Focus              | Continual RL                        | Human-AI Alignment + Continual RL  |
 
 ## Training Agents
 
@@ -331,6 +355,7 @@ python -m CL.run_cl --sequence WORLD_PROGRESSION_4 \
 ```
 
 **Available CL Methods:**
+
 - `l2` - L2 weight regularization
 - `ewc` - Elastic Weight Consolidation
 - `mas` - Memory Aware Synapses
@@ -341,6 +366,7 @@ python -m CL.run_cl --sequence WORLD_PROGRESSION_4 \
 - `clonex` - ClonEx
 
 **Important Notes:**
+
 - Use `--multihead_archs False` to avoid architecture dimension mismatches
 - Results are logged to `./logs/` directory
 - Add `--with_wandb` for Weights & Biases logging
