@@ -1,6 +1,10 @@
 # MHAIA - Mario Human-AI Alignment Benchmark
 
-> **Built upon [COOM (Continual Doom)](https://github.com/TTomilin/COOM)** - This project is based on the COOM benchmark by Tristan Tomilin et al. We extend their excellent continual reinforcement learning framework to create MHAIA, a benchmark for evaluating human-AI alignment in game-based environments.
+> 🎵 Mario-hii Mario-huu Mario-hoo Mario ah haaaa! 🎵
+> 
+> — An exhausted data manager.
+
+**Built upon [COOM (Continual Doom)](https://github.com/TTomilin/COOM)** - This project is based on the COOM benchmark by Tristan Tomilin et al. We extend their excellent continual reinforcement learning framework to create MHAIA, a benchmark for evaluating human-AI alignment in game-based environments.
 
 **MHAIA** (Mario Human-AI Alignment) is a continual reinforcement learning benchmark based on **Super Mario Bros**, designed to evaluate AI agents' ability to learn sequential tasks while maintaining alignment with human gameplay patterns and preferences. The benchmark consists of task sequences across the 8 worlds of Super Mario Bros, with 4 stages per world.
 
