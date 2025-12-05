@@ -1,14 +1,14 @@
-# MHAIA - Mario Human-AI Alignment Benchmark (Status: WiP)
+# MariHA - Mario Human Alignment Benchmark (Status: WiP)
 
 > 🎵 Mario-hii Mario-huu Mario-hoo Mario ah haaaa! 🎵
 >
 > — An exhausted data manager.
 
-**Built upon [COOM (Continual Doom)](https://github.com/TTomilin/COOM)** - This project is based on the COOM benchmark by Tristan Tomilin et al. We extend their excellent continual reinforcement learning framework to create MHAIA, a benchmark for evaluating human-AI alignment in game-based environments.
+**Built upon [COOM (Continual Doom)](https://github.com/TTomilin/COOM)** - This project is based on the COOM benchmark by Tristan Tomilin et al. We extend their excellent continual reinforcement learning framework to create MariHA, a benchmark for evaluating human-AI alignment in game-based environments.
 
-**MHAIA** (Mario Human-AI Alignment) is a continual reinforcement learning benchmark based on **Super Mario Bros**, designed to evaluate AI agents' ability to learn sequential tasks while maintaining alignment with human gameplay patterns and preferences. The benchmark consists of task sequences across the 8 worlds of Super Mario Bros, with 4 stages per world.
+**MariHA** (Mario Human Alignment) is a continual reinforcement learning benchmark based on **Super Mario Bros**, designed to evaluate AI agents' ability to learn sequential tasks while maintaining alignment with human gameplay patterns and preferences. The benchmark consists of task sequences across the 8 worlds of Super Mario Bros, with 4 stages per world.
 
-📄 **Paper**: [MHAIA on OpenReview](https://openreview.net/forum?id=YAVB439L9X)
+📄 **Paper**: [MariHA on OpenReview](https://openreview.net/forum?id=YAVB439L9X)
 
 <p align="center">
   <img src="assets/gifs/mario_demo1.gif" alt="Mario Demo 1" style="vertical-align: top;"/>
@@ -27,13 +27,13 @@
 1. Clone the repository
 
 ```bash
-git clone --recurse-submodules https://github.com/courtois-neuromod/MHAIA
+git clone --recurse-submodules https://github.com/courtois-neuromod/MariHA
 ```
 
 2. Navigate into the repository
 
 ```bash
-cd MHAIA
+cd MariHA
 ```
 
 3. Create and activate a virtual environment
@@ -43,7 +43,7 @@ python -m venv env
 source env/bin/activate  # On Windows: env\Scripts\activate
 ```
 
-4. Install MHAIA with all dependencies
+4. Install MariHA with all dependencies
 
 ```bash
 # For basic Mario environment usage
@@ -57,7 +57,7 @@ pip install -e ".[cl]"
 
 ### ROM Setup
 
-You need the Super Mario Bros (NES) ROM file to use MHAIA. There are two methods:
+You need the Super Mario Bros (NES) ROM file to use MariHA. There are two methods:
 
 #### Method 1: Via DataLad (Recommended for CNeuromod members)
 
@@ -202,8 +202,8 @@ Alternate between different worlds and stages:
 ### Run a Single Level
 
 ```python
-from MHAIA.env.builder import make_env
-from MHAIA.utils.config import Scenario
+from MariHA.env.builder import make_env
+from MariHA.utils.config import Scenario
 
 # Create a World 1 environment running Level 1-1
 env = make_env(Scenario.WORLD1, task='Level1-1')
@@ -221,8 +221,8 @@ env.close()
 ### Run a Continual Learning Sequence
 
 ```python
-from MHAIA.env.continual import ContinualLearningEnv
-from MHAIA.utils.config import Sequence
+from MariHA.env.continual import ContinualLearningEnv
+from MariHA.utils.config import Sequence
 
 # Create a continual learning environment
 cl_env = ContinualLearningEnv(
@@ -245,13 +245,13 @@ cl_env.close()
 Test a single world:
 
 ```bash
-python MHAIA/examples/run_single.py --scenario world1 --task Level1-1 --render
+python MariHA/examples/run_single.py --scenario world1 --task Level1-1 --render
 ```
 
 Test a continual learning sequence:
 
 ```bash
-python MHAIA/examples/run_sequence.py --sequence WORLD_PROGRESSION_4 --steps-per-env 1000 --render
+python MariHA/examples/run_sequence.py --sequence WORLD_PROGRESSION_4 --steps-per-env 1000 --render
 ```
 
 ## Custom Integration Path
@@ -282,7 +282,7 @@ The following game variables are accessible for reward shaping and statistics:
 ## Architecture Overview
 
 ```
-MHAIA/
+MariHA/
 ├── env/
 │   ├── scenario.py          # MarioEnv base class
 │   ├── continual.py         # ContinualLearningEnv wrapper
@@ -307,7 +307,7 @@ MHAIA/
 
 ## Key Differences from Original COOM
 
-| Aspect             | Original COOM (Doom)                | MHAIA (Mario)                      |
+| Aspect             | Original COOM (Doom)                | MariHA (Mario)                     |
 | ------------------ | ----------------------------------- | ---------------------------------- |
 | Game Engine        | ViZDoom                             | stable-retro                       |
 | Game               | Doom (1993)                         | Super Mario Bros (1985)            |
@@ -376,7 +376,7 @@ For detailed CL configurations and reproducing paper results, see the [CL README
 
 ## Citation
 
-If you use MHAIA in your research, please cite both the MHAIA benchmark and the original COOM framework it builds upon:
+If you use MariHA in your research, please cite both the MariHA benchmark and the original COOM framework it builds upon:
 
 ```bibtex
 @inproceedings{harel2025human,
